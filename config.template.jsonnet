@@ -15,17 +15,17 @@ local pretrained_transformer_name = if std.length(std.extVar("pretrained_transfo
 # Learning rate value, float
 local learning_rate = 0.002;
 # Number of epochs, int
-local num_epochs = 1;
+local num_epochs = std.parseInt(std.extVar("num_epochs"));
 # Cuda device id, -1 for cpu, int
-local cuda_device = -1;
+local cuda_device = std.parseInt(std.extVar("cuda_device"));
 # Minimum number of words in batch, int
-local word_batch_size = 1;
+local word_batch_size = std.parseInt(std.extVar("word_batch_size"));
 # Features used as input, list of str
 # Choice "upostag", "xpostag", "lemma"
 # Required "token", "char"
 local features = std.split(std.extVar("features"), " ");
 # Targets of the model, list of str
-# Choice "feats", "lemma", "upostag", "xpostag", "semrel"
+# Choice "feats", "lemma", "upostag", "xpostag", "semrel". "sent"
 # Required "deprel", "head"
 local targets = std.split(std.extVar("targets"), " ");
 # Path for tensorboard metrics, str
@@ -343,6 +343,9 @@ assert pretrained_tokens == null || pretrained_transformer_name == null: "Can't 
         },
     }),
     trainer: {
+        checkpointer: {
+            type: "finishing_only_checkpointer",
+        },
         type: "gradient_descent_validate_n",
         cuda_device: cuda_device,
         grad_clipping: 5.0,

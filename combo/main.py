@@ -20,30 +20,34 @@ logger = logging.getLogger(__name__)
 
 FLAGS = flags.FLAGS
 flags.DEFINE_enum(name='mode', default=None, enum_values=['train', 'predict'],
-                  help="Specify COMBO mode: train or precit")
+                  help='Specify COMBO mode: train or predict')
 
 # Common flags
 flags.DEFINE_integer(name='cuda_device', default=-1,
                      help="Cuda device id (default -1 cpu)")
 
 # Training flags
-flags.DEFINE_string(name='training_data_path', default="./tests/fixtures/example.conllu",
-                    help='Training data path')
-flags.DEFINE_string(name='validation_data_path', default='',
-                    help='Validation data path')
+flags.DEFINE_list(name='training_data_path', default="./tests/fixtures/example.conllu",
+                  help='Training data path')
+flags.DEFINE_list(name='validation_data_path', default='',
+                  help='Validation data path')
 flags.DEFINE_string(name='pretrained_tokens', default='',
                     help='Pretrained tokens embeddings path')
 flags.DEFINE_integer(name='embedding_dim', default=300,
                      help='Embeddings dim')
+flags.DEFINE_integer(name='num_epochs', default=400,
+                     help='Epochs num')
+flags.DEFINE_integer(name='word_batch_size', default=2500,
+                     help='Minimum words in batch')
 flags.DEFINE_string(name='pretrained_transformer_name', default='',
                     help='Pretrained transformer model name (see transformers from HuggingFace library for list of'
                          'available models) for transformers based embeddings.')
 flags.DEFINE_multi_enum(name='features', default=['token', 'char'],
                         enum_values=['token', 'char', 'upostag', 'xpostag', 'lemma'],
-                        help='Features used to train model (required \'token\' and \'char\')')
+                        help='Features used to train model (required `token` and `char`)')
 flags.DEFINE_multi_enum(name='targets', default=['deprel', 'feats', 'head', 'lemma', 'upostag', 'xpostag'],
                         enum_values=['deprel', 'feats', 'head', 'lemma', 'upostag', 'xpostag', 'semrel', 'sent'],
-                        help='Targets of the model (required \'deprel\' and \'head\')')
+                        help='Targets of the model (required `deprel` and `head`)')
 flags.DEFINE_string(name='serialization_dir', default=None,
                     help='Model serialization directory (default - system temp dir).')
 
@@ -56,7 +60,7 @@ flags.DEFINE_string(name='config_path', default='config.template.jsonnet',
                     help='Config file path.')
 
 # Test after training flags
-flags.DEFINE_string(name='result', default='result.conll',
+flags.DEFINE_string(name='result', default='result.conllu',
                     help='Test result path file')
 flags.DEFINE_string(name='test_path', default=None,
                     help='Test path file.')
@@ -124,7 +128,7 @@ def run(_):
 
         if FLAGS.test_path and FLAGS.result:
             checks.file_exists(FLAGS.test_path)
-            params = common.Params.from_file(FLAGS.config_path)['dataset_reader']
+            params = common.Params.from_file(FLAGS.config_path, ext_vars=_get_ext_vars())['dataset_reader']
             params.pop('type')
             dataset_reader = dataset.UniversalDependenciesDatasetReader.from_params(params)
             predictor = predict.SemanticMultitaskPredictor(
@@ -167,21 +171,28 @@ def _get_ext_vars(finetuning: bool = False) -> Dict:
         return {}
     else:
         return {
-            'training_data_path': FLAGS.training_data_path if not finetuning else FLAGS.finetuning_training_data_path,
+            'training_data_path': (
+                ':'.join(FLAGS.training_data_path) if not finetuning else FLAGS.finetuning_training_data_path),
             'validation_data_path': (
-                FLAGS.validation_data_path if not finetuning else FLAGS.finetuning_validation_data_path),
+                ':'.join(FLAGS.validation_data_path) if not finetuning else FLAGS.finetuning_validation_data_path),
             'pretrained_tokens': FLAGS.pretrained_tokens,
             'pretrained_transformer_name': FLAGS.pretrained_transformer_name,
             'features': ' '.join(FLAGS.features),
             'targets': ' '.join(FLAGS.targets),
             'type': 'finetuning' if finetuning else 'default',
             'embedding_dim': str(FLAGS.embedding_dim),
+            'cuda_device': str(FLAGS.cuda_device),
+            'num_epochs': str(FLAGS.num_epochs),
+            'word_batch_size': str(FLAGS.word_batch_size)
         }
 
 
 def main():
     """Parse flags."""
-    flags.mark_flag_as_required('mode')
+    flags.register_validator(
+        'mode',
+        lambda value: value is not None,
+        message='Flag --mode must be set with either `predict` or `train` value')
     app.run(run)
 
 

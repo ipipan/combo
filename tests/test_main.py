@@ -34,13 +34,13 @@ class TrainingEndToEndTest(unittest.TestCase):
             'pretrained_tokens': os.path.join(self.FIXTURES_ROOT, 'example.vec'),
             'pretrained_transformer_name': '',
             'embedding_dim': '300',
-
+            'cuda_device': '-1',
+            'num_epochs': '1',
+            'word_batch_size': '1',
         }
         params = Params.from_file(os.path.join(self.PROJECT_ROOT, 'config.template.jsonnet'),
                                   ext_vars=ext_vars)
         params['trainer']['tensorboard_writer']['serialization_dir'] = os.path.join(self.TEST_DIR, 'metrics')
-        params['trainer']['num_epochs'] = 1
-        params['data_loader']['batch_sampler']['word_batch_size'] = 1
 
         # when
         model = train.train_model(params, serialization_dir=self.TEST_DIR)
