@@ -80,7 +80,6 @@ class LemmatizerModel(base.Predictor):
 
     @classmethod
     def from_vocab(cls,
-
                    vocab: data.Vocabulary,
                    char_vocab_namespace: str,
                    lemma_vocab_namespace: str,
