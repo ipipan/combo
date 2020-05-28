@@ -22,25 +22,35 @@ combo --helpfull
 Examples (for clarity without training/validation data paths):
 
 * train on gpu 0
+
     ```bash
     combo --mode train --cuda_davice 0
     ```
+
 * use pretrained embeddings:
+
     ```bash
     combo --mode train --pretrained_tokens your_pretrained_embeddings_path --embedding_dim your_embeddings_dim
     ```
+
 * use pretrained transformer embeddings:
+
     ```bash
     combo --mode train --pretrained_transformer_name your_choosen_pretrained_transformer
     ```
+
 * predict only dependency tree:
+
     ```bash
     combo --mode train --targets head --targets deprel
     ```
+
 * use part-of-speech tags for predicting only dependency tree
+
     ```bash
     combo --mode train --targets head --targets deprel --features token --features char --features upostag
     ```
+
 Advanced configuration: [Configuration](#configuration)
 
 ## Prediction
