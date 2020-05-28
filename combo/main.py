@@ -25,6 +25,8 @@ flags.DEFINE_enum(name='mode', default=None, enum_values=['train', 'predict'],
 # Common flags
 flags.DEFINE_integer(name='cuda_device', default=-1,
                      help="Cuda device id (default -1 cpu)")
+flags.DEFINE_string(name='output_file', default='output.log',
+                    help='Predictions result file.')
 
 # Training flags
 flags.DEFINE_list(name='training_data_path', default="./tests/fixtures/example.conllu",
@@ -60,8 +62,6 @@ flags.DEFINE_string(name='config_path', default='config.template.jsonnet',
                     help='Config file path.')
 
 # Test after training flags
-flags.DEFINE_string(name='result', default='result.conllu',
-                    help='Test result path file')
 flags.DEFINE_string(name='test_path', default=None,
                     help='Test path file.')
 
@@ -74,8 +74,6 @@ flags.DEFINE_string(name='model_path', default=None,
                     help='Pretrained model path.')
 flags.DEFINE_string(name='input_file', default=None,
                     help='File to predict path')
-flags.DEFINE_string(name='output_file', default='output.log',
-                    help='Predictions result file.')
 flags.DEFINE_integer(name='batch_size', default=1,
                      help='Prediction batch size.')
 flags.DEFINE_boolean(name='silent', default=True,
@@ -126,7 +124,7 @@ def run(_):
 
             logger.info(f'Finetuned model stored in: {serialization_dir}')
 
-        if FLAGS.test_path and FLAGS.result:
+        if FLAGS.test_path and FLAGS.output_file:
             checks.file_exists(FLAGS.test_path)
             params = common.Params.from_file(FLAGS.config_path, ext_vars=_get_ext_vars())['dataset_reader']
             params.pop('type')
@@ -137,7 +135,7 @@ def run(_):
             )
             test_path = FLAGS.test_path
             test_trees = dataset_reader.read(test_path)
-            with open(FLAGS.result, 'w') as f:
+            with open(FLAGS.output_file, 'w') as f:
                 for tree in test_trees:
                     f.writelines(predictor.predict_instance_as_tree(tree).serialize())
     else:

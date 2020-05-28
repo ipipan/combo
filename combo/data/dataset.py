@@ -46,6 +46,8 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
         fields = list(parser.DEFAULT_FIELDS)
         fields[1] = 'token'  # use 'token' instead of 'form'
         field_parsers = parser.DEFAULT_FIELD_PARSERS
+        # Do not make it nullable
+        field_parsers.pop('xpostag', None)
         if self._use_sem:
             fields = list(fields)
             fields.append('semrel')

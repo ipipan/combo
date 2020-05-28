@@ -364,8 +364,9 @@ assert pretrained_tokens == null || pretrained_transformer_name == null: "Can't 
         },
         tensorboard_writer: {
             serialization_dir: metrics_dir,
-            should_log_learning_rate: true,
-            summary_interval: 2,
+            should_log_learning_rate: false,
+            should_log_parameter_statistics: false,
+            summary_interval: 100,
         },
         validation_metric: "+EM",
     },

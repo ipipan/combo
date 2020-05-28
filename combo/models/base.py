@@ -102,7 +102,8 @@ class FeedForwardPredictor(Predictor):
                 "len(hidden_dims) (%d) + 1 != num_layers (%d)" % (len(hidden_dims), num_layers)
             )
 
-        assert vocab_namespace in vocab.get_namespaces()
+        assert vocab_namespace in vocab.get_namespaces(),\
+            f"There is not {vocab_namespace} in created vocabs, check if this field has any values to predict!"
         hidden_dims = hidden_dims + [vocab.get_vocab_size(vocab_namespace)]
 
         return cls(feedforward.FeedForward(
