@@ -75,6 +75,15 @@ There are 2 tokenizers: whitespace and spacy-based (`en_core_web_sm` model).
 
 Use either `--predictor_name semantic-multitask-predictor` or `--predictor_name semantic-multitask-predictor-spacy`.
 
+### Python
+```python
+import combo.predict as predict
+
+model_path = "your_model.tar.gz"
+predictor = predict.SemanticMultitaskPredictor.from_pretrained(model_path)
+parsed_tree = predictor.predict_string("Sentence to parse.")["tree"]
+```
+
 ## Configuration
 
 ### Advanced
