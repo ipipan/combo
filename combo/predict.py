@@ -57,6 +57,9 @@ class SemanticMultitaskPredictor(predictor.Predictor):
         logger.info('Took {} ms'.format((end_time - start_time) * 1000.0))
         return result
 
+    def predict_string(self, sentence: str):
+        return self.predict_json({'sentence': sentence})
+
     @overrides
     def predict_json(self, inputs: common.JsonDict) -> common.JsonDict:
         start_time = time.time()
@@ -139,3 +142,13 @@ class SemanticMultitaskPredictor(predictor.Predictor):
     def with_spacy_tokenizer(cls, model: models.Model,
                              dataset_reader: allen_data.DatasetReader):
         return cls(model, dataset_reader, tokenizers.SpacyTokenizer())
+
+    @classmethod
+    def from_pretrained(cls, path: str, tokenizer=tokenizers.SpacyTokenizer()):
+        util.import_module_and_submodules('combo.commands')
+        util.import_module_and_submodules('combo.models')
+        util.import_module_and_submodules('combo.training')
+        model = models.Model.from_archive(path)
+        dataset_reader = allen_data.DatasetReader.from_params(
+            models.load_archive(path).config['dataset_reader'])
+        return cls(model, dataset_reader, tokenizer)

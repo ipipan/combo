@@ -93,7 +93,7 @@ class HeadPredictionModel(base.Predictor):
             pred_i = pred[:, i + 1, :].reshape(BATCH_SIZE, SENTENCE_LENGTH)
             true_i = true[:, i].reshape(-1)
             mask_i = mask[:, i]
-            cross_entropy_loss = utils.masked_cross_entropy(pred_i, true_i, mask_i) * mask_i
+            cross_entropy_loss = utils.masked_cross_entropy(pred_i, true_i, mask_i)
             result.append(cross_entropy_loss)
         cycle_loss = self._cycle_loss(pred)
         loss = torch.stack(result).transpose(1, 0) * sample_weights.unsqueeze(-1)
@@ -162,7 +162,7 @@ class DependencyRelationModel(base.Predictor):
         pred = pred.reshape(-1, DEPENDENCY_RELATIONS)
         true = true.reshape(-1)
         mask = mask.reshape(-1)
-        loss = utils.masked_cross_entropy(pred, true, mask) * mask
+        loss = utils.masked_cross_entropy(pred, true, mask)
         loss = loss.reshape(BATCH_SIZE, -1) * sample_weights.unsqueeze(-1)
         return loss.sum() / valid_positions
 

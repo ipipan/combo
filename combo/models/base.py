@@ -83,7 +83,7 @@ class FeedForwardPredictor(Predictor):
         pred = pred.reshape(-1, CLASSES)
         true = true.reshape(-1)
         mask = mask.reshape(-1)
-        loss = utils.masked_cross_entropy(pred, true, mask) * mask
+        loss = utils.masked_cross_entropy(pred, true, mask)
         loss = loss.reshape(BATCH_SIZE, -1) * sample_weights.unsqueeze(-1)
         return loss.sum() / valid_positions
 

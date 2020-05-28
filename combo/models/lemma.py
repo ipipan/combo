@@ -74,12 +74,13 @@ class LemmatizerModel(base.Predictor):
         valid_positions = mask.sum()
         mask = mask.reshape(-1)
         true = true.reshape(-1)
-        loss = utils.masked_cross_entropy(pred, true, mask) * mask
+        loss = utils.masked_cross_entropy(pred, true, mask)
         loss = loss.reshape(BATCH_SIZE, -1) * sample_weights.unsqueeze(-1)
         return loss.sum() / valid_positions
 
     @classmethod
     def from_vocab(cls,
+
                    vocab: data.Vocabulary,
                    char_vocab_namespace: str,
                    lemma_vocab_namespace: str,

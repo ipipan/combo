@@ -63,11 +63,11 @@ class MorphologicalFeatures(base.Predictor):
                 if loss is None:
                     loss = loss_func(pred[:, cat_indices],
                                      true[:, cat_indices].argmax(dim=1),
-                                     mask) * mask
+                                     mask)
                 else:
                     loss += loss_func(pred[:, cat_indices],
                                       true[:, cat_indices].argmax(dim=1),
-                                      mask) * mask
+                                      mask)
         loss = loss.reshape(BATCH_SIZE, -1) * sample_weights.unsqueeze(-1)
         return loss.sum() / valid_positions
 
