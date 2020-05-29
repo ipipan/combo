@@ -78,7 +78,8 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
                     # dependencies for the original sentence.
                     # We filter by integers here as elided words have a non-integer word id,
                     # as parsed by the conllu python library.
-                    annotation = conllu.TokenList([x for x in annotation if isinstance(x['id'], int)])
+                    annotation = conllu.TokenList([x for x in annotation if isinstance(x['id'], int)],
+                                                  metadata=annotation.metadata)
                     yield self.text_to_instance(annotation)
 
     @overrides

@@ -83,7 +83,8 @@ class SemanticMultitaskPredictor(predictor.Predictor):
         return conllu.TokenList(
             [d({'id': idx, 'token': token}) for
              idx, token
-             in enumerate(sentence)]
+             in enumerate(sentence)],
+            metadata=collections.OrderedDict()
         )
 
     def _predictions_as_tree(self, predictions, instance):
@@ -135,7 +136,7 @@ class SemanticMultitaskPredictor(predictor.Predictor):
                         raise NotImplementedError(f'Unknown field name {field_name}!')
 
         if self._dataset_reader and 'sent' in self._dataset_reader._targets:
-            tree.metadata = {'sentence_embedding': str(predictions['sentence_embedding'])}
+            tree.metadata['sentence_embedding'] = str(predictions['sentence_embedding'])
         return tree
 
     @classmethod
