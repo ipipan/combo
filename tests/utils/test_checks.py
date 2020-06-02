@@ -18,7 +18,7 @@ class SizeCheckTest(unittest.TestCase):
         # when
         checks.check_size_match(size_1=tensor1.size(),
                                 size_2=tensor2.size(),
-                                tensor_1_name='', tensor_2_name='')
+                                tensor_1_name="", tensor_2_name="")
 
         # then
         # nothing happens
@@ -35,4 +35,4 @@ class SizeCheckTest(unittest.TestCase):
         with self.assertRaises(allen_checks.ConfigurationError):
             checks.check_size_match(size_1=tensor1.size(),
                                     size_2=tensor2.size(),
-                                    tensor_1_name='', tensor_2_name='')
+                                    tensor_1_name="", tensor_2_name="")

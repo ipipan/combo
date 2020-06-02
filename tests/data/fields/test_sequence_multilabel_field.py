@@ -12,10 +12,10 @@ from combo.data import fields
 class IndexingSequenceMultiLabelFieldTest(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.namespace = 'test_labels'
+        self.namespace = "test_labels"
         self.vocab = allen_data.Vocabulary()
         self.vocab.add_tokens_to_namespace(
-            tokens=['t' + str(idx) for idx in range(3)],
+            tokens=["t" + str(idx) for idx in range(3)],
             namespace=self.namespace
         )
 
@@ -37,7 +37,7 @@ class IndexingSequenceMultiLabelFieldTest(unittest.TestCase):
     def test_indexing(self):
         # given
         field = fields.SequenceMultiLabelField(
-            multi_labels=[['t1', 't2'], [], ['t0']],
+            multi_labels=[["t1", "t2"], [], ["t0"]],
             multi_label_indexer=self.indexer,
             sequence_field=self.sequence_field,
             label_namespace=self.namespace
@@ -53,7 +53,7 @@ class IndexingSequenceMultiLabelFieldTest(unittest.TestCase):
     def test_mapping_to_tensor(self):
         # given
         field = fields.SequenceMultiLabelField(
-            multi_labels=[['t1', 't2'], [], ['t0']],
+            multi_labels=[["t1", "t2"], [], ["t0"]],
             multi_label_indexer=self.indexer,
             sequence_field=self.sequence_field,
             label_namespace=self.namespace
@@ -70,7 +70,7 @@ class IndexingSequenceMultiLabelFieldTest(unittest.TestCase):
     def test_sequence_method(self):
         # given
         field = fields.SequenceMultiLabelField(
-            multi_labels=[['t1', 't2'], [], ['t0']],
+            multi_labels=[["t1", "t2"], [], ["t0"]],
             multi_label_indexer=self.indexer,
             sequence_field=self.sequence_field,
             label_namespace=self.namespace

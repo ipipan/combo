@@ -14,7 +14,7 @@ from combo.data import fields
 logger = logging.getLogger(__name__)
 
 
-@allen_data.DatasetReader.register('conllu')
+@allen_data.DatasetReader.register("conllu")
 class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
 
     def __init__(
@@ -28,11 +28,11 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
     ) -> None:
         super().__init__(**kwargs)
         if features is None:
-            features = ['token', 'char']
+            features = ["token", "char"]
         if targets is None:
-            targets = ['head', 'deprel', 'upostag', 'xpostag', 'lemma', 'feats']
+            targets = ["head", "deprel", "upostag", "xpostag", "lemma", "feats"]
 
-        if 'token' not in features and 'char' not in features:
+        if "token" not in features and "char" not in features:
             raise checks.ConfigurationError("There must be at least one ('char' or 'token') text-based feature!")
 
         intersection = set(features).intersection(set(targets))
@@ -45,14 +45,14 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
 
         # *.conllu readers configuration
         fields = list(parser.DEFAULT_FIELDS)
-        fields[1] = 'token'  # use 'token' instead of 'form'
+        fields[1] = "token"  # use 'token' instead of 'form'
         field_parsers = parser.DEFAULT_FIELD_PARSERS
         # Do not make it nullable
-        field_parsers.pop('xpostag', None)
+        field_parsers.pop("xpostag", None)
         if self._use_sem:
             fields = list(fields)
-            fields.append('semrel')
-            field_parsers['semrel'] = lambda line, i: parser.parse_nullable_value(line[i]),
+            fields.append("semrel")
+            field_parsers["semrel"] = lambda line, i: parser.parse_nullable_value(line[i]),
         self.field_parsers = field_parsers
         self.fields = tuple(fields)
 
@@ -69,50 +69,50 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
 
     @overrides
     def _read(self, file_path: str) -> Iterable[allen_data.Instance]:
-        file_path = [file_path] if len(file_path.split(':')) == 0 else file_path.split(':')
+        file_path = [file_path] if len(file_path.split(":")) == 0 else file_path.split(":")
 
         for conllu_file in file_path:
-            with open(conllu_file, 'r') as f:
-                for annotation in conllu.parse_incr(f, fields=self.fields, field_parsers=self.field_parsers):
+            with open(conllu_file, "r") as file:
+                for annotation in conllu.parse_incr(file, fields=self.fields, field_parsers=self.field_parsers):
                     # CoNLLU annotations sometimes add back in words that have been elided
                     # in the original sentence; we remove these, as we're just predicting
                     # dependencies for the original sentence.
                     # We filter by integers here as elided words have a non-integer word id,
                     # as parsed by the conllu python library.
-                    annotation = conllu.TokenList([x for x in annotation if isinstance(x['id'], int)],
+                    annotation = conllu.TokenList([x for x in annotation if isinstance(x["id"], int)],
                                                   metadata=annotation.metadata)
                     yield self.text_to_instance(annotation)
 
     @overrides
     def text_to_instance(self, tree: conllu.TokenList) -> allen_data.Instance:
         fields_: Dict[str, allen_data.Field] = {}
-        tokens = [_Token(t['token'],
-                        pos_=t.get('upostag'),
-                        tag_=t.get('xpostag'),
-                        lemma_=t.get('lemma'),
-                        feats_=t.get('feats'))
+        tokens = [_Token(t["token"],
+                         pos_=t.get("upostag"),
+                         tag_=t.get("xpostag"),
+                         lemma_=t.get("lemma"),
+                         feats_=t.get("feats"))
                   for t in tree]
 
         # features
         text_field = allen_fields.TextField(tokens, self._token_indexers)
-        fields_['sentence'] = text_field
+        fields_["sentence"] = text_field
 
         # targets
         if self.generate_labels:
             for target_name in self._targets:
-                if target_name != 'sent':
+                if target_name != "sent":
                     target_values = [t[target_name] for t in tree.tokens]
-                    if target_name == 'lemma':
+                    if target_name == "lemma":
                         target_values = [allen_data.Token(v) for v in target_values]
                         fields_[target_name] = allen_fields.TextField(target_values, self._lemma_indexers)
-                    elif target_name == 'feats':
+                    elif target_name == "feats":
                         target_values = self._feat_values(tree)
                         fields_[target_name] = fields.SequenceMultiLabelField(target_values,
                                                                               self._feats_to_index_multi_label,
                                                                               text_field,
                                                                               label_namespace="feats_labels")
-                    elif target_name == 'head':
-                        target_values = [0 if v == '_' else int(v) for v in target_values]
+                    elif target_name == "head":
+                        target_values = [0 if v == "_" else int(v) for v in target_values]
                         fields_[target_name] = allen_fields.SequenceLabelField(target_values, text_field,
                                                                                label_namespace=target_name + "_labels")
                     else:
@@ -120,7 +120,7 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
                                                                                label_namespace=target_name + "_labels")
 
         # metadata
-        fields_["metadata"] = allen_fields.MetadataField({'input': tree, 'field_names': self.fields})
+        fields_["metadata"] = allen_fields.MetadataField({"input": tree, "field_names": self.fields})
         return allen_data.Instance(fields_)
 
     @staticmethod
@@ -128,12 +128,12 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
         features = []
         for token in tree:
             token_features = []
-            if token['feats'] is not None:
-                for feat, value in token['feats'].items():
-                    if feat in ['_', '__ROOT__']:
+            if token["feats"] is not None:
+                for feat, value in token["feats"].items():
+                    if feat in ["_", "__ROOT__"]:
                         pass
                     else:
-                        token_features.append(feat + '=' + value)
+                        token_features.append(feat + "=" + value)
             features.append(token_features)
         return features
 
@@ -146,8 +146,8 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
         def _m_from_n_ones_encoding(multi_label: List[str]) -> List[int]:
             one_hot_encoding = [0] * vocab_size
             for cat, cat_indices in slices.items():
-                if cat not in ['__PAD__', '_']:
-                    label_from_cat = [label for label in multi_label if cat == label.split('=')[0]]
+                if cat not in ["__PAD__", "_"]:
+                    label_from_cat = [label for label in multi_label if cat == label.split("=")[0]]
                     if label_from_cat:
                         label_from_cat = label_from_cat[0]
                         index = vocab.get_token_index(label_from_cat, label_namespace)
@@ -160,7 +160,7 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
         return _m_from_n_ones_encoding
 
 
-@allen_data.Vocabulary.register('from_instances_extended', constructor='from_instances_extended')
+@allen_data.Vocabulary.register("from_instances_extended", constructor="from_instances_extended")
 class Vocabulary(allen_data.Vocabulary):
 
     @classmethod
@@ -183,9 +183,9 @@ class Vocabulary(allen_data.Vocabulary):
         # - only words add all embedding file, without checking if were seen
         # in any dataset.
         tokens_to_add = None
-        if pretrained_files and 'tokens' in pretrained_files:
-            pretrained_set = set(vocabulary._read_pretrained_tokens(pretrained_files['tokens']))
-            tokens_to_add = {'tokens': list(pretrained_set)}
+        if pretrained_files and "tokens" in pretrained_files:
+            pretrained_set = set(vocabulary._read_pretrained_tokens(pretrained_files["tokens"]))
+            tokens_to_add = {"tokens": list(pretrained_set)}
             pretrained_files = None
 
         vocab = super().from_instances(
@@ -209,21 +209,21 @@ class Vocabulary(allen_data.Vocabulary):
 
 
 def get_slices_if_not_provided(vocab: allen_data.Vocabulary):
-    if hasattr(vocab, 'slices'):
+    if hasattr(vocab, "slices"):
         return vocab.slices
 
-    if 'feats_labels' in vocab.get_namespaces():
-        idx2token = vocab.get_index_to_token_vocabulary('feats_labels')
-        for k, v in dict(idx2token).items():
-            if v not in ['_', '__PAD__']:
+    if "feats_labels" in vocab.get_namespaces():
+        idx2token = vocab.get_index_to_token_vocabulary("feats_labels")
+        for _, v in dict(idx2token).items():
+            if v not in ["_", "__PAD__"]:
                 empty_value = v.split("=")[0] + "=None"
-                vocab.add_token_to_namespace(empty_value, 'feats_labels')
+                vocab.add_token_to_namespace(empty_value, "feats_labels")
 
         slices = {}
-        for idx, name in vocab.get_index_to_token_vocabulary('feats_labels').items():
+        for idx, name in vocab.get_index_to_token_vocabulary("feats_labels").items():
             # There are 2 types features: with (Case=Acc) or without assigment (None).
             # Here we group their indices by name (before assigment sign).
-            name = name.split('=')[0]
+            name = name.split("=")[0]
             if name in slices:
                 slices[name].append(idx)
             else:

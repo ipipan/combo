@@ -11,8 +11,8 @@ from overrides import overrides
 from combo.models import base, dilated_cnn
 
 
-@token_embedders.TokenEmbedder.register('char_embeddings')
-@token_embedders.TokenEmbedder.register('char_embeddings_from_config', constructor='from_config')
+@token_embedders.TokenEmbedder.register("char_embeddings")
+@token_embedders.TokenEmbedder.register("char_embeddings_from_config", constructor="from_config")
 class CharacterBasedWordEmbeddings(token_embedders.TokenEmbedder):
     """Character-based word embeddings."""
 
@@ -48,7 +48,7 @@ class CharacterBasedWordEmbeddings(token_embedders.TokenEmbedder):
                     embedding_dim: int,
                     vocab: data.Vocabulary,
                     dilated_cnn_encoder: dilated_cnn.DilatedCnnEncoder,
-                    vocab_namespace: str = 'token_characters'):
+                    vocab_namespace: str = "token_characters"):
         assert vocab_namespace in vocab.get_namespaces()
         return cls(
             embedding_dim=embedding_dim,
@@ -57,7 +57,7 @@ class CharacterBasedWordEmbeddings(token_embedders.TokenEmbedder):
         )
 
 
-@token_embedders.TokenEmbedder.register('embeddings_projected')
+@token_embedders.TokenEmbedder.register("embeddings_projected")
 class ProjectedWordEmbedder(token_embedders.Embedding):
     """Word embeddings."""
 
@@ -97,7 +97,7 @@ class ProjectedWordEmbedder(token_embedders.Embedding):
         return self.output_dim
 
 
-@token_embedders.TokenEmbedder.register('transformers_word_embeddings')
+@token_embedders.TokenEmbedder.register("transformers_word_embeddings")
 class TransformersWordEmbedder(token_embedders.PretrainedTransformerMismatchedEmbedder):
     """
     Transformers word embeddings as last hidden state + optional projection layers.
@@ -128,13 +128,13 @@ class TransformersWordEmbedder(token_embedders.PretrainedTransformerMismatchedEm
             self.output_dim = super().get_output_dim()
 
     def forward(
-        self,
-        token_ids: torch.LongTensor,
-        mask: torch.BoolTensor,
-        offsets: torch.LongTensor,
-        wordpiece_mask: torch.BoolTensor,
-        type_ids: Optional[torch.LongTensor] = None,
-        segment_concat_mask: Optional[torch.BoolTensor] = None,
+            self,
+            token_ids: torch.LongTensor,
+            mask: torch.BoolTensor,
+            offsets: torch.LongTensor,
+            wordpiece_mask: torch.BoolTensor,
+            type_ids: Optional[torch.LongTensor] = None,
+            segment_concat_mask: Optional[torch.BoolTensor] = None,
     ) -> torch.Tensor:
         x = super().forward(token_ids=token_ids, mask=mask, offsets=offsets, wordpiece_mask=wordpiece_mask,
                             type_ids=type_ids, segment_concat_mask=segment_concat_mask)

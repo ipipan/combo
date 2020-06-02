@@ -27,7 +27,7 @@ from combo.training import tensorboard_writer as combo_tensorboard_writer
 logger = logging.getLogger(__name__)
 
 
-@training.EpochCallback.register('transfer_patience')
+@training.EpochCallback.register("transfer_patience")
 class TransferPatienceEpochCallback(training.EpochCallback):
 
     def __call__(self, trainer: "training.GradientDescentTrainer", metrics: Dict[str, Any], epoch: int) -> None:
@@ -135,7 +135,7 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
                         this_epoch_val_metric = val_metrics[self._validation_metric]
                         # self._metric_tracker.add_metric(this_epoch_val_metric)
 
-                train_metrics['patience'] = self._metric_tracker._patience
+                train_metrics["patience"] = self._metric_tracker._patience
                 if self._metric_tracker.should_stop_early():
                     logger.info("Ran out of patience.  Stopping training.")
                     break
@@ -215,31 +215,31 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
 
     @classmethod
     def from_partial_objects(
-        cls,
-        model: model.Model,
-        serialization_dir: str,
-        data_loader: data.DataLoader,
-        validation_data_loader: data.DataLoader = None,
-        local_rank: int = 0,
-        patience: int = None,
-        validation_metric: str = "-loss",
-        num_epochs: int = 20,
-        cuda_device: int = -1,
-        grad_norm: float = None,
-        grad_clipping: float = None,
-        distributed: bool = None,
-        world_size: int = 1,
-        num_gradient_accumulation_steps: int = 1,
-        opt_level: Optional[str] = None,
-        no_grad: List[str] = None,
-        optimizer: common.Lazy[optimizers.Optimizer] = None,
-        learning_rate_scheduler: common.Lazy[learning_rate_schedulers.LearningRateScheduler] = None,
-        momentum_scheduler: common.Lazy[momentum_schedulers.MomentumScheduler] = None,
-        tensorboard_writer: common.Lazy[allen_tensorboard_writer.TensorboardWriter] = None,
-        moving_average: common.Lazy[moving_average.MovingAverage] = None,
-        checkpointer: common.Lazy[training.Checkpointer] = None,
-        batch_callbacks: List[training.BatchCallback] = None,
-        epoch_callbacks: List[training.EpochCallback] = None,
+            cls,
+            model: model.Model,
+            serialization_dir: str,
+            data_loader: data.DataLoader,
+            validation_data_loader: data.DataLoader = None,
+            local_rank: int = 0,
+            patience: int = None,
+            validation_metric: str = "-loss",
+            num_epochs: int = 20,
+            cuda_device: int = -1,
+            grad_norm: float = None,
+            grad_clipping: float = None,
+            distributed: bool = None,
+            world_size: int = 1,
+            num_gradient_accumulation_steps: int = 1,
+            opt_level: Optional[str] = None,
+            no_grad: List[str] = None,
+            optimizer: common.Lazy[optimizers.Optimizer] = None,
+            learning_rate_scheduler: common.Lazy[learning_rate_schedulers.LearningRateScheduler] = None,
+            momentum_scheduler: common.Lazy[momentum_schedulers.MomentumScheduler] = None,
+            tensorboard_writer: common.Lazy[allen_tensorboard_writer.TensorboardWriter] = None,
+            moving_average: common.Lazy[moving_average.MovingAverage] = None,
+            checkpointer: common.Lazy[training.Checkpointer] = None,
+            batch_callbacks: List[training.BatchCallback] = None,
+            epoch_callbacks: List[training.EpochCallback] = None,
     ) -> "training.Trainer":
         if tensorboard_writer.construct() is None:
             tensorboard_writer = common.Lazy(combo_tensorboard_writer.NullTensorboardWriter)

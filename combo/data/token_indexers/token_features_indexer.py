@@ -8,7 +8,7 @@ from allennlp.common import util
 from overrides import overrides
 
 
-@data.TokenIndexer.register('feats_indexer')
+@data.TokenIndexer.register("feats_indexer")
 class TokenFeatsIndexer(data.TokenIndexer):
 
     def __init__(
@@ -49,10 +49,10 @@ class TokenFeatsIndexer(data.TokenIndexer):
             feats = collections.OrderedDict()
         features = []
         for feat, value in feats.items():
-            if feat in ['_', '__ROOT__']:
+            if feat in ["_", "__ROOT__"]:
                 pass
             else:
-                features.append(feat + '=' + value)
+                features.append(feat + "=" + value)
         return features
 
     @overrides

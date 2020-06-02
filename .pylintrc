@@ -248,6 +248,17 @@ good-names=i,
            ex,
            Run,
            x,
+           v,
+           BATCH_SIZE,
+           CLASSES,
+           DEPENDENCY_RELATIONS,
+           MORPHOLOGICAL_FEATURES,
+           SENTENCE_LENGTH,
+           MAX_WORD_LENGTH,
+           CHAR_CLASSES,
+           CHAR_EMB,
+           M,
+           N,
            _
 
 # Include a hint for the correct naming format with invalid-name.
@@ -380,7 +391,7 @@ check-str-concat-over-line-jumps=no
 
 [STRING_QUOTES]
 
-string-quote=single
+string-quote=double
 triple-quote=double
 docstring-quote=double
 
@@ -481,16 +492,16 @@ ignore-docstrings=yes
 ignore-imports=no
 
 # Minimum lines number of a similarity.
-min-similarity-lines=4
+min-similarity-lines=20
 
 
 [DESIGN]
 
 # Maximum number of arguments for function / method.
-max-args=7
+max-args=20
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=7
+max-attributes=10
 
 # Maximum number of boolean expressions in an if statement (see R0916).
 max-bool-expr=5
@@ -499,7 +510,7 @@ max-bool-expr=5
 max-branches=12
 
 # Maximum number of locals for function / method body.
-max-locals=15
+max-locals=30
 
 # Maximum number of parents for a class (see R0901).
 max-parents=7

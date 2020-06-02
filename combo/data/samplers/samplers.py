@@ -21,7 +21,7 @@ class TokenCountBatchSampler(allen_data.BatchSampler):
         batches = []
         batch = []
         words_count = 0
-        lengths = [len(instance.fields['sentence'].tokens) for instance in dataset]
+        lengths = [len(instance.fields["sentence"].tokens) for instance in dataset]
         argsorted_lengths = np.argsort(lengths)
         for idx in argsorted_lengths:
             words_count += lengths[idx]

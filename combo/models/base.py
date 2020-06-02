@@ -12,8 +12,7 @@ from combo.models import utils
 
 
 class Predictor(nn.Module, common.Registrable):
-
-    default_implementation = 'feedforward_predictor_from_vocab'
+    default_implementation = "feedforward_predictor_from_vocab"
 
     def forward(self,
                 x: Union[torch.Tensor, List[torch.Tensor]],
@@ -43,8 +42,8 @@ class Linear(nn.Linear, common.FromParams):
         return self.out_features
 
 
-@Predictor.register('feedforward_predictor')
-@Predictor.register('feedforward_predictor_from_vocab', constructor='from_vocab')
+@Predictor.register("feedforward_predictor")
+@Predictor.register("feedforward_predictor_from_vocab", constructor="from_vocab")
 class FeedForwardPredictor(Predictor):
     """Feedforward predictor. Should be used on top of Seq2Seq encoder."""
 
@@ -62,14 +61,14 @@ class FeedForwardPredictor(Predictor):
 
         x = self.feedforward_network(x)
         output = {
-            'prediction': x.argmax(-1),
-            'probability': x
+            "prediction": x.argmax(-1),
+            "probability": x
         }
 
         if labels is not None:
             if sample_weights is None:
                 sample_weights = labels.new_ones([mask.size(0)])
-            output['loss'] = self._loss(x, labels, mask, sample_weights)
+            output["loss"] = self._loss(x, labels, mask, sample_weights)
 
         return output
 
@@ -99,10 +98,10 @@ class FeedForwardPredictor(Predictor):
                    ):
         if len(hidden_dims) + 1 != num_layers:
             raise checks.ConfigurationError(
-                "len(hidden_dims) (%d) + 1 != num_layers (%d)" % (len(hidden_dims), num_layers)
+                f"len(hidden_dims) ({len(hidden_dims):d}) + 1 != num_layers ({num_layers:d})"
             )
 
-        assert vocab_namespace in vocab.get_namespaces(),\
+        assert vocab_namespace in vocab.get_namespaces(), \
             f"There is not {vocab_namespace} in created vocabs, check if this field has any values to predict!"
         hidden_dims = hidden_dims + [vocab.get_vocab_size(vocab_namespace)]
 
@@ -111,5 +110,4 @@ class FeedForwardPredictor(Predictor):
             num_layers=num_layers,
             hidden_dims=hidden_dims,
             activations=activations,
-            dropout=dropout)
-        )
+            dropout=dropout))

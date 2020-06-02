@@ -22,13 +22,13 @@ class SemanticMetricsTest(unittest.TestCase):
         pred_seq = pred.reshape(3, 4, 1)
         gold = pred.clone()
         gold_seq = pred_seq.clone()
-        self.upostag, self.upostag_l = (('upostag', x) for x in [pred, gold])
-        self.xpostag, self.xpostag_l = (('xpostag', x) for x in [pred, gold])
-        self.semrel, self.semrel_l = (('semrel', x) for x in [pred, gold])
-        self.head, self.head_l = (('head', x) for x in [pred, gold])
-        self.deprel, self.deprel_l = (('deprel', x) for x in [pred, gold])
-        self.feats, self.feats_l = (('feats', x) for x in [pred_seq, gold_seq])
-        self.lemma, self.lemma_l = (('lemma', x) for x in [pred_seq, gold_seq])
+        self.upostag, self.upostag_l = (("upostag", x) for x in [pred, gold])
+        self.xpostag, self.xpostag_l = (("xpostag", x) for x in [pred, gold])
+        self.semrel, self.semrel_l = (("semrel", x) for x in [pred, gold])
+        self.head, self.head_l = (("head", x) for x in [pred, gold])
+        self.deprel, self.deprel_l = (("deprel", x) for x in [pred, gold])
+        self.feats, self.feats_l = (("feats", x) for x in [pred_seq, gold_seq])
+        self.lemma, self.lemma_l = (("lemma", x) for x in [pred_seq, gold_seq])
         self.predictions = dict(
             [self.upostag, self.xpostag, self.semrel, self.feats, self.lemma, self.head, self.deprel])
         self.gold_labels = dict([self.upostag_l, self.xpostag_l, self.semrel_l, self.feats_l, self.lemma_l, self.head_l,
@@ -48,8 +48,8 @@ class SemanticMetricsTest(unittest.TestCase):
     def test_missing_predictions_for_one_target(self):
         # given
         metric = metrics.SemanticMetrics()
-        self.predictions['upostag'] = None
-        self.gold_labels['upostag'] = None
+        self.predictions["upostag"] = None
+        self.gold_labels["upostag"] = None
 
         # when
         metric(self.predictions, self.gold_labels, self.mask)
@@ -60,10 +60,10 @@ class SemanticMetricsTest(unittest.TestCase):
     def test_missing_predictions_for_two_targets(self):
         # given
         metric = metrics.SemanticMetrics()
-        self.predictions['upostag'] = None
-        self.gold_labels['upostag'] = None
-        self.predictions['lemma'] = None
-        self.gold_labels['lemma'] = None
+        self.predictions["upostag"] = None
+        self.gold_labels["upostag"] = None
+        self.predictions["lemma"] = None
+        self.gold_labels["lemma"] = None
 
         # when
         metric(self.predictions, self.gold_labels, self.mask)
@@ -74,7 +74,7 @@ class SemanticMetricsTest(unittest.TestCase):
     def test_one_classification_in_one_target_is_wrong(self):
         # given
         metric = metrics.SemanticMetrics()
-        self.predictions['upostag'][0][0] = 100
+        self.predictions["upostag"][0][0] = 100
 
         # when
         metric(self.predictions, self.gold_labels, self.mask)
@@ -85,12 +85,12 @@ class SemanticMetricsTest(unittest.TestCase):
     def test_classification_errors_and_target_without_predictions(self):
         # given
         metric = metrics.SemanticMetrics()
-        self.predictions['feats'] = None
-        self.gold_labels['feats'] = None
-        self.predictions['upostag'][0][0] = 100
-        self.predictions['upostag'][2][0] = 100
+        self.predictions["feats"] = None
+        self.gold_labels["feats"] = None
+        self.predictions["upostag"][0][0] = 100
+        self.predictions["upostag"][2][0] = 100
         # should be ignored due to masking
-        self.predictions['upostag'][1][3] = 100
+        self.predictions["upostag"][1][3] = 100
 
         # when
         metric(self.predictions, self.gold_labels, self.mask)

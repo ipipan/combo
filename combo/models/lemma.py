@@ -9,7 +9,7 @@ from allennlp.common import checks
 from combo.models import base, dilated_cnn, utils
 
 
-@base.Predictor.register('combo_lemma_predictor_from_vocab', constructor='from_vocab')
+@base.Predictor.register("combo_lemma_predictor_from_vocab", constructor="from_vocab")
 class LemmatizerModel(base.Predictor):
     """Lemmatizer model."""
 
@@ -42,8 +42,8 @@ class LemmatizerModel(base.Predictor):
         x = torch.cat((char_embeddings, encoder_emb), dim=-1).transpose(2, 3)
         x = self.dilated_cnn_encoder(x).transpose(2, 3)
         output = {
-            'prediction': x.argmax(-1),
-            'probability': x
+            "prediction": x.argmax(-1),
+            "probability": x
         }
 
         if labels is not None:
@@ -52,7 +52,7 @@ class LemmatizerModel(base.Predictor):
             if sample_weights is None:
                 sample_weights = labels.new_ones(BATCH_SIZE)
             mask = mask.unsqueeze(2).repeat(1, 1, MAX_WORD_LENGTH).bool()
-            output['loss'] = self._loss(x, labels, mask, sample_weights)
+            output["loss"] = self._loss(x, labels, mask, sample_weights)
 
         return output
 
@@ -88,7 +88,7 @@ class LemmatizerModel(base.Predictor):
 
         if len(filters) + 1 != len(kernel_size):
             raise checks.ConfigurationError(
-                "len(filters) (%d) + 1 != kernel_size (%d)" % (len(filters), len(kernel_size))
+                f"len(filters) ({len(filters):d}) + 1 != kernel_size ({len(kernel_size):d})"
             )
         filters = filters + [vocab.get_vocab_size(lemma_vocab_namespace)]
 

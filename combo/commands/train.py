@@ -1,3 +1,4 @@
+"""Finetuning train model wrapper."""
 import os
 from typing import List
 
@@ -15,22 +16,22 @@ class FinetuningTrainModel(train.TrainModel):
 
     @classmethod
     def from_partial_objects_finetuning(
-        cls,
-        serialization_dir: str,
-        local_rank: int,
-        batch_weight_key: str,
-        dataset_reader: data.DatasetReader,
-        train_data_path: str,
-        model: common.Lazy[models.Model],
-        data_loader: common.Lazy[data.DataLoader],
-        trainer: common.Lazy[training.Trainer],
-        vocabulary: common.Lazy[data.Vocabulary] = None,
-        datasets_for_vocab_creation: List[str] = None,
-        validation_dataset_reader: data.DatasetReader = None,
-        validation_data_path: str = None,
-        validation_data_loader: common.Lazy[data.DataLoader] = None,
-        test_data_path: str = None,
-        evaluate_on_test: bool = False,
+            cls,
+            serialization_dir: str,
+            local_rank: int,  # pylint: disable=unused-argument
+            batch_weight_key: str,
+            dataset_reader: data.DatasetReader,
+            train_data_path: str,
+            model: common.Lazy[models.Model],
+            data_loader: common.Lazy[data.DataLoader],
+            trainer: common.Lazy[training.Trainer],
+            vocabulary: common.Lazy[data.Vocabulary] = None,
+            datasets_for_vocab_creation: List[str] = None,
+            validation_dataset_reader: data.DatasetReader = None,
+            validation_data_path: str = None,
+            validation_data_loader: common.Lazy[data.DataLoader] = None,
+            test_data_path: str = None,
+            evaluate_on_test: bool = False,
     ) -> "train.TrainModel":
         """
         This method is intended for use with our `FromParams` logic, to construct a `TrainModel`

@@ -11,6 +11,7 @@ from combo.models import base, utils
 
 
 class HeadPredictionModel(base.Predictor):
+    """Head prediction model."""
 
     def __init__(self,
                  head_projection_layer: base.Linear,
@@ -48,29 +49,30 @@ class HeadPredictionModel(base.Predictor):
             pred = torch.from_numpy(np.stack(pred)).to(x.device)
 
         output = {
-            'prediction': pred[:, 1:],
-            'probability': x
+            "prediction": pred[:, 1:],
+            "probability": x
         }
 
         if labels is not None:
             if sample_weights is None:
                 sample_weights = labels.new_ones([mask.size(0)])
-            output['loss'], output['cycle_loss'] = self._loss(x, labels, mask, sample_weights)
+            output["loss"], output["cycle_loss"] = self._loss(x, labels, mask, sample_weights)
 
         return output
 
     def _cycle_loss(self, pred: torch.Tensor):
-        BATCH_SIZE, SENTENCE_LENGTH, _ = pred.size()
+        BATCH_SIZE, _, _ = pred.size()
         loss = pred.new_zeros(BATCH_SIZE)
         # 1: as using non __ROOT__ tokens
-        yn = pred[:, 1:, 1:]
-        for i in range(self.cycle_loss_n):
-            loss += self._batch_trace(yn) / BATCH_SIZE
-            yn = yn.bmm(pred[:, 1:, 1:])
+        x = pred[:, 1:, 1:]
+        for _ in range(self.cycle_loss_n):
+            loss += self._batch_trace(x) / BATCH_SIZE
+            x = x.bmm(pred[:, 1:, 1:])
 
         return loss
 
-    def _batch_trace(self, x: torch.Tensor) -> torch.Tensor:
+    @staticmethod
+    def _batch_trace(x: torch.Tensor) -> torch.Tensor:
         assert len(x.size()) == 3
         BATCH_SIZE, N, M = x.size()
         assert N == M
@@ -100,8 +102,9 @@ class HeadPredictionModel(base.Predictor):
         return loss.sum() / valid_positions + cycle_loss.mean(), cycle_loss.mean()
 
 
-@base.Predictor.register('combo_dependency_parsing_from_vocab', constructor='from_vocab')
+@base.Predictor.register("combo_dependency_parsing_from_vocab", constructor="from_vocab")
 class DependencyRelationModel(base.Predictor):
+    """Dependency relation parsing model."""
 
     def __init__(self,
                  head_predictor: HeadPredictionModel,
@@ -128,7 +131,7 @@ class DependencyRelationModel(base.Predictor):
                 mask = head_labels.new_ones(head_labels.size())
 
         head_output = self.head_predictor(x, mask, head_labels, sample_weights)
-        head_pred = head_output['probability']
+        head_pred = head_output["probability"]
         head_pred_soft = F.softmax(head_pred, dim=-1)
 
         head_rel_emb = self.head_projection_layer(x)
@@ -140,18 +143,18 @@ class DependencyRelationModel(base.Predictor):
         relation_prediction = self.relation_prediction_layer(dep_rel_pred)
         output = head_output
 
-        output['prediction'] = (relation_prediction.argmax(-1)[:, 1:], head_output['prediction'])
+        output["prediction"] = (relation_prediction.argmax(-1)[:, 1:], head_output["prediction"])
 
         if labels is not None and labels[0] is not None:
             if sample_weights is None:
                 sample_weights = labels.new_ones([mask.size(0)])
             loss = self._loss(relation_prediction[:, 1:], relations_labels, mask, sample_weights)
-            output['loss'] = (loss, head_output['loss'])
+            output["loss"] = (loss, head_output["loss"])
 
         return output
 
-    def _loss(self,
-              pred: torch.Tensor,
+    @staticmethod
+    def _loss(pred: torch.Tensor,
               true: torch.Tensor,
               mask: torch.BoolTensor,
               sample_weights: torch.Tensor) -> torch.Tensor:
@@ -174,6 +177,7 @@ class DependencyRelationModel(base.Predictor):
                    head_projection_layer: base.Linear,
                    dependency_projection_layer: base.Linear
                    ):
+        """Creates parser combining model configuration and vocabulary data."""
         assert vocab_namespace in vocab.get_namespaces()
         relation_prediction_layer = base.Linear(
             in_features=head_projection_layer.get_output_dim() + dependency_projection_layer.get_output_dim(),

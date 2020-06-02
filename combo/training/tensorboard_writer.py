@@ -9,13 +9,13 @@ from allennlp.training import optimizers
 class NullTensorboardWriter(common.FromParams):
 
     def log_batch(
-        self,
-        model: models.Model,
-        optimizer: optimizers.Optimizer,
-        batch_grad_norm: Optional[float],
-        metrics: Dict[str, float],
-        batch_group: List[List[dataloader.TensorDict]],
-        param_updates: Optional[Dict[str, torch.Tensor]],
+            self,
+            model: models.Model,
+            optimizer: optimizers.Optimizer,
+            batch_grad_norm: Optional[float],
+            metrics: Dict[str, float],
+            batch_group: List[List[dataloader.TensorDict]],
+            param_updates: Optional[Dict[str, torch.Tensor]],
     ) -> None:
         pass
 
@@ -50,11 +50,11 @@ class NullTensorboardWriter(common.FromParams):
         pass
 
     def log_metrics(
-        self,
-        train_metrics: dict,
-        val_metrics: dict = None,
-        epoch: int = None,
-        log_to_console: bool = False,
+            self,
+            train_metrics: dict,
+            val_metrics: dict = None,
+            epoch: int = None,
+            log_to_console: bool = False,
     ) -> None:
         pass
 

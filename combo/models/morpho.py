@@ -11,7 +11,7 @@ from combo.data import dataset
 from combo.models import base, utils
 
 
-@base.Predictor.register('combo_morpho_from_vocab', constructor='from_vocab')
+@base.Predictor.register("combo_morpho_from_vocab", constructor="from_vocab")
 class MorphologicalFeatures(base.Predictor):
     """Morphological features predicting model."""
 
@@ -31,25 +31,25 @@ class MorphologicalFeatures(base.Predictor):
         x = self.feedforward_network(x)
 
         prediction = []
-        for cat, cat_indices in self.slices.items():
+        for _, cat_indices in self.slices.items():
             prediction.append(x[:, :, cat_indices].argmax(dim=-1))
 
         output = {
-            'prediction': torch.stack(prediction, dim=-1),
-            'probability': x
+            "prediction": torch.stack(prediction, dim=-1),
+            "probability": x
         }
 
         if labels is not None:
             if sample_weights is None:
                 sample_weights = labels.new_ones([mask.size(0)])
-            output['loss'] = self._loss(x, labels, mask, sample_weights)
+            output["loss"] = self._loss(x, labels, mask, sample_weights)
 
         return output
 
     def _loss(self, pred: torch.Tensor, true: torch.Tensor, mask: torch.BoolTensor,
               sample_weights: torch.Tensor) -> torch.Tensor:
         assert pred.size() == true.size()
-        BATCH_SIZE, SENTENCE_LENGTH, MORPHOLOGICAL_FEATURES = pred.size()
+        BATCH_SIZE, _, MORPHOLOGICAL_FEATURES = pred.size()
 
         valid_positions = mask.sum()
 
@@ -59,7 +59,7 @@ class MorphologicalFeatures(base.Predictor):
         loss = None
         loss_func = utils.masked_cross_entropy
         for cat, cat_indices in self.slices.items():
-            if cat not in ['__PAD__', '_']:
+            if cat not in ["__PAD__", "_"]:
                 if loss is None:
                     loss = loss_func(pred[:, cat_indices],
                                      true[:, cat_indices].argmax(dim=1),
@@ -83,7 +83,7 @@ class MorphologicalFeatures(base.Predictor):
                    ):
         if len(hidden_dims) + 1 != num_layers:
             raise checks.ConfigurationError(
-                "len(hidden_dims) (%d) + 1 != num_layers (%d)" % (len(hidden_dims), num_layers)
+                f"len(hidden_dims) ({len(hidden_dims):d}) + 1 != num_layers ({num_layers:d})"
             )
 
         assert vocab_namespace in vocab.get_namespaces()

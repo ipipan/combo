@@ -1,3 +1,4 @@
+"""Metrics implementation."""
 from typing import Optional, List, Dict
 
 import torch
@@ -6,6 +7,7 @@ from overrides import overrides
 
 
 class SequenceBoolAccuracy(metrics.Metric):
+    """BoolAccuracy implementation to handle sequences."""
 
     def __init__(self, prod_last_dim: bool = False):
         self._correct_count = 0.0
@@ -187,6 +189,7 @@ class AttachmentScores(metrics.Metric):
 
 
 class SemanticMetrics(metrics.Metric):
+    """Groups metrics for all predictions."""
 
     def __init__(self) -> None:
         self.upos_score = SequenceBoolAccuracy()
@@ -202,15 +205,15 @@ class SemanticMetrics(metrics.Metric):
             predictions: Dict[str, torch.Tensor],
             gold_labels: Dict[str, torch.Tensor],
             mask: torch.BoolTensor):
-        self.upos_score(predictions['upostag'], gold_labels['upostag'], mask)
-        self.xpos_score(predictions['xpostag'], gold_labels['xpostag'], mask)
-        self.semrel_score(predictions['semrel'], gold_labels['semrel'], mask)
-        self.feats_score(predictions['feats'], gold_labels['feats'], mask)
-        self.lemma_score(predictions['lemma'], gold_labels['lemma'], mask)
-        self.attachment_scores(predictions['head'],
-                               predictions['deprel'],
-                               gold_labels['head'],
-                               gold_labels['deprel'],
+        self.upos_score(predictions["upostag"], gold_labels["upostag"], mask)
+        self.xpos_score(predictions["xpostag"], gold_labels["xpostag"], mask)
+        self.semrel_score(predictions["semrel"], gold_labels["semrel"], mask)
+        self.feats_score(predictions["feats"], gold_labels["feats"], mask)
+        self.lemma_score(predictions["lemma"], gold_labels["lemma"], mask)
+        self.attachment_scores(predictions["head"],
+                               predictions["deprel"],
+                               gold_labels["head"],
+                               gold_labels["deprel"],
                                mask)
         total = mask.sum()
         correct_indices = (self.upos_score.correct_indices *
@@ -225,7 +228,7 @@ class SemanticMetrics(metrics.Metric):
         self.em_score = (correct_indices.float().sum() / total).item()
 
     def get_metric(self, reset: bool) -> Dict[str, float]:
-        metrics = {
+        metrics_dict = {
             "UPOS_ACC": self.upos_score.get_metric(reset),
             "XPOS_ACC": self.xpos_score.get_metric(reset),
             "SEMREL_ACC": self.semrel_score.get_metric(reset),
@@ -233,8 +236,8 @@ class SemanticMetrics(metrics.Metric):
             "FEATS_ACC": self.feats_score.get_metric(reset),
             "EM": self.em_score
         }
-        metrics.update(self.attachment_scores.get_metric(reset))
-        return metrics
+        metrics_dict.update(self.attachment_scores.get_metric(reset))
+        return metrics_dict
 
     def reset(self) -> None:
         self.upos_score.reset()

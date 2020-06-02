@@ -11,12 +11,12 @@ class TokenCountBatchSamplerTest(unittest.TestCase):
 
     def setUp(self) -> None:
         self.dataset = []
-        self.sentences = ['First sentence makes full batch.', 'Short', 'This ends first batch']
+        self.sentences = ["First sentence makes full batch.", "Short", "This ends first batch"]
         for sentence in self.sentences:
             tokens = [data.Token(t)
                       for t in sentence.split()]
             text_field = fields.TextField(tokens, {})
-            self.dataset.append(data.Instance({'sentence': text_field}))
+            self.dataset.append(data.Instance({"sentence": text_field}))
 
     def test_batches(self):
         # given

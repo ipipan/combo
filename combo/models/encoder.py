@@ -37,8 +37,8 @@ class StackedBiLSTM(stacked_bidirectional_lstm.StackedBidirectionalLstm, common.
         state_fwd = None
         state_bwd = None
         for i in range(self.num_layers):
-            forward_layer = getattr(self, 'forward_layer_{}'.format(i))
-            backward_layer = getattr(self, 'backward_layer_{}'.format(i))
+            forward_layer = getattr(self, f"forward_layer_{i}")
+            backward_layer = getattr(self, f"backward_layer_{i}")
 
             forward_output, state_fwd = forward_layer(output_sequence, state_fwd)
             backward_output, state_bwd = backward_layer(output_sequence, state_bwd)
@@ -54,7 +54,7 @@ class StackedBiLSTM(stacked_bidirectional_lstm.StackedBidirectionalLstm, common.
         return output_sequence, (state_fwd, state_bwd)
 
 
-@modules.Seq2SeqEncoder.register('combo_encoder')
+@modules.Seq2SeqEncoder.register("combo_encoder")
 class ComboEncoder(seq2seq_encoders.PytorchSeq2SeqWrapper):
     """COMBO encoder (https://www.aclweb.org/anthology/K18-2004.pdf).
 

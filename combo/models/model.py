@@ -11,7 +11,7 @@ from combo.models import base
 from combo.utils import metrics
 
 
-@allen_models.Model.register('semantic_multitask')
+@allen_models.Model.register("semantic_multitask")
 class SemanticMultitaskModel(allen_models.Model):
     """Main COMBO model."""
 
@@ -53,10 +53,10 @@ class SemanticMultitaskModel(allen_models.Model):
                 feats: torch.Tensor = None,
                 head: torch.Tensor = None,
                 deprel: torch.Tensor = None,
-                semrel: torch.Tensor = None,) -> Dict[str, torch.Tensor]:
+                semrel: torch.Tensor = None, ) -> Dict[str, torch.Tensor]:
 
         # Prepare masks
-        char_mask: torch.BoolTensor = sentence['char']['token_characters'] > 0
+        char_mask: torch.BoolTensor = sentence["char"]["token_characters"] > 0
         word_mask = util.get_text_field_mask(sentence)
 
         # If enabled weight samples loss by log(sentence_length)
@@ -93,10 +93,10 @@ class SemanticMultitaskModel(allen_models.Model):
                                        labels=feats,
                                        sample_weights=sample_weights)
         lemma_output = self._optional(self.lemmatizer,
-                                      (encoder_emb[:, 1:], sentence.get('char').get('token_characters')
-                                       if sentence.get('char') else None),
+                                      (encoder_emb[:, 1:], sentence.get("char").get("token_characters")
+                                      if sentence.get("char") else None),
                                       mask=word_mask[:, 1:],
-                                      labels=lemma.get('char').get('token_characters') if lemma else None,
+                                      labels=lemma.get("char").get("token_characters") if lemma else None,
                                       sample_weights=sample_weights)
         parser_output = self._optional(self.dependency_relation,
                                        encoder_emb,
@@ -104,16 +104,16 @@ class SemanticMultitaskModel(allen_models.Model):
                                        mask=word_mask,
                                        labels=(deprel, head),
                                        sample_weights=sample_weights)
-        relations_pred, head_pred = parser_output['prediction']
+        relations_pred, head_pred = parser_output["prediction"]
         output = {
-            'upostag': upos_output['prediction'],
-            'xpostag': xpos_output['prediction'],
-            'semrel': semrel_output['prediction'],
-            'feats': morpho_output['prediction'],
-            'lemma': lemma_output['prediction'],
-            'head': head_pred,
-            'deprel': relations_pred,
-            'sentence_embedding': torch.max(encoder_emb[:, 1:], dim=1)[0],
+            "upostag": upos_output["prediction"],
+            "xpostag": xpos_output["prediction"],
+            "semrel": semrel_output["prediction"],
+            "feats": morpho_output["prediction"],
+            "lemma": lemma_output["prediction"],
+            "head": head_pred,
+            "deprel": relations_pred,
+            "sentence_embedding": torch.max(encoder_emb[:, 1:], dim=1)[0],
         }
 
         if self._has_labels([upostag, xpostag, lemma, feats, head, deprel, semrel]):
@@ -121,35 +121,35 @@ class SemanticMultitaskModel(allen_models.Model):
             # Feats mapping
             if self.morphological_feat:
                 mapped_gold_labels = []
-                for cat, cat_indices in self.morphological_feat.slices.items():
+                for _, cat_indices in self.morphological_feat.slices.items():
                     mapped_gold_labels.append(feats[:, :, cat_indices].argmax(dim=-1))
 
                 feats = torch.stack(mapped_gold_labels, dim=-1)
 
             labels = {
-                'upostag': upostag,
-                'xpostag': xpostag,
-                'semrel': semrel,
-                'feats': feats,
-                'lemma': lemma.get('char').get('token_characters') if lemma else None,
-                'head': head,
-                'deprel': deprel,
+                "upostag": upostag,
+                "xpostag": xpostag,
+                "semrel": semrel,
+                "feats": feats,
+                "lemma": lemma.get("char").get("token_characters") if lemma else None,
+                "head": head,
+                "deprel": deprel,
             }
-            self.scores(output,  labels, word_mask[:, 1:])
-            relations_loss, head_loss = parser_output['loss']
+            self.scores(output, labels, word_mask[:, 1:])
+            relations_loss, head_loss = parser_output["loss"]
             losses = {
-                'upostag_loss': upos_output['loss'],
-                'xpostag_loss': xpos_output['loss'],
-                'semrel_loss': semrel_output['loss'],
-                'feats_loss': morpho_output['loss'],
-                'lemma_loss': lemma_output['loss'],
-                'head_loss': head_loss,
-                'deprel_loss': relations_loss,
+                "upostag_loss": upos_output["loss"],
+                "xpostag_loss": xpos_output["loss"],
+                "semrel_loss": semrel_output["loss"],
+                "feats_loss": morpho_output["loss"],
+                "lemma_loss": lemma_output["loss"],
+                "head_loss": head_loss,
+                "deprel_loss": relations_loss,
                 # Cycle loss is only for the metrics purposes.
-                'cycle_loss': parser_output.get('cycle_loss')
+                "cycle_loss": parser_output.get("cycle_loss")
             }
             self._partial_losses = losses.copy()
-            losses['loss'] = self._calculate_loss(losses)
+            losses["loss"] = self._calculate_loss(losses)
             output.update(losses)
 
         return self._clean(output)
@@ -161,8 +161,8 @@ class SemanticMultitaskModel(allen_models.Model):
     def _calculate_loss(self, output):
         losses = []
         for name, value in self.loss_weights.items():
-            if output.get(f'{name}_loss'):
-                losses.append(output[f'{name}_loss'] * value)
+            if output.get(f"{name}_loss"):
+                losses.append(output[f"{name}_loss"] * value)
         return torch.stack(losses).sum()
 
     @staticmethod
@@ -172,11 +172,9 @@ class SemanticMultitaskModel(allen_models.Model):
                   **kwargs):
         if callable_model:
             return callable_model(*args, **kwargs)
-        else:
-            if returns_tuple:
-                return {'prediction': (None, None), 'loss': (None, None)}
-            else:
-                return {'prediction': None, 'loss': None}
+        if returns_tuple:
+            return {"prediction": (None, None), "loss": (None, None)}
+        return {"prediction": None, "loss": None}
 
     @staticmethod
     def _clean(output):
