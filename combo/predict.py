@@ -10,6 +10,8 @@ from allennlp.data import tokenizers
 from allennlp.predictors import predictor
 from overrides import overrides
 
+from combo import data
+
 logger = logging.getLogger(__name__)
 
 
@@ -58,7 +60,7 @@ class SemanticMultitaskPredictor(predictor.Predictor):
         return result
 
     def predict(self, sentence: str):
-        return self.predict_json({'sentence': sentence})
+        return data.Sentence.from_json(self.predict_json({'sentence': sentence}))
 
     def __call__(self, sentence: str):
         return self.predict(sentence)

@@ -67,7 +67,7 @@ Works for models where input was text-based only.
 Interactive testing in console (load model and just type sentence in console).
 
 ```bash
-combo --mode predict --model_path your_model_tar_gz --input_file "-"
+combo --mode predict --model_path your_model_tar_gz --input_file "-" --nosilent
 ```
 ### Raw text
 Works for models where input was text-based only. 
@@ -91,7 +91,7 @@ import combo.predict as predict
 
 model_path = "your_model.tar.gz"
 nlp = predict.SemanticMultitaskPredictor.from_pretrained(model_path)
-parsed_tree = nlp("Sentence to parse.")["tree"]
+sentence = nlp("Sentence to parse.")
 ```
 
 ## Configuration

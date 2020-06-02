@@ -86,7 +86,7 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
     @overrides
     def text_to_instance(self, tree: conllu.TokenList) -> allen_data.Instance:
         fields_: Dict[str, allen_data.Field] = {}
-        tokens = [Token(t['token'],
+        tokens = [_Token(t['token'],
                         pos_=t.get('upostag'),
                         tag_=t.get('xpostag'),
                         lemma_=t.get('lemma'),
@@ -233,5 +233,5 @@ def get_slices_if_not_provided(vocab: allen_data.Vocabulary):
 
 
 @dataclass
-class Token(allen_data.Token):
+class _Token(allen_data.Token):
     feats_: Optional[str] = None
