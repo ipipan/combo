@@ -21,5 +21,6 @@ setup(
     packages=find_packages(exclude=['tests']),
     setup_requires=['pytest-runner', 'pytest-pylint'],
     tests_require=['pytest', 'pylint'],
+    python_requires='>=3.6',
     entry_points={'console_scripts': ['combo = combo.main:main']},
 )

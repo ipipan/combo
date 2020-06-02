@@ -10,17 +10,19 @@ import torch.distributed as dist
 import torch.optim as optim
 import torch.optim.lr_scheduler
 import torch.utils.data as data
-from allennlp import training
+from allennlp import training, common
 from allennlp.common import checks
 from allennlp.common import util as common_util
 from allennlp.models import model
-from allennlp.training import checkpointer
+from allennlp.training import checkpointer, optimizers
 from allennlp.training import learning_rate_schedulers
 from allennlp.training import momentum_schedulers
 from allennlp.training import moving_average
-from allennlp.training import tensorboard_writer
+from allennlp.training import tensorboard_writer as allen_tensorboard_writer
 from allennlp.training import util as training_util
 from overrides import overrides
+
+from combo.training import tensorboard_writer as combo_tensorboard_writer
 
 logger = logging.getLogger(__name__)
 
@@ -47,13 +49,12 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
                  grad_norm: Optional[float] = None, grad_clipping: Optional[float] = None,
                  learning_rate_scheduler: Optional[learning_rate_schedulers.LearningRateScheduler] = None,
                  momentum_scheduler: Optional[momentum_schedulers.MomentumScheduler] = None,
-                 tensorboard_writer: tensorboard_writer.TensorboardWriter = None,
+                 tensorboard_writer: allen_tensorboard_writer.TensorboardWriter = None,
                  moving_average: Optional[moving_average.MovingAverage] = None,
                  batch_callbacks: List[training.BatchCallback] = None,
                  epoch_callbacks: List[training.EpochCallback] = None, distributed: bool = False, local_rank: int = 0,
                  world_size: int = 1, num_gradient_accumulation_steps: int = 1,
                  opt_level: Optional[str] = None) -> None:
-
         super().__init__(model, optimizer, data_loader, patience, validation_metric, validation_data_loader, num_epochs,
                          serialization_dir, checkpointer, cuda_device, grad_norm, grad_clipping,
                          learning_rate_scheduler, momentum_scheduler, tensorboard_writer, moving_average,
@@ -211,3 +212,60 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
             self.model.load_state_dict(best_model_state)
 
         return metrics
+
+    @classmethod
+    def from_partial_objects(
+        cls,
+        model: model.Model,
+        serialization_dir: str,
+        data_loader: data.DataLoader,
+        validation_data_loader: data.DataLoader = None,
+        local_rank: int = 0,
+        patience: int = None,
+        validation_metric: str = "-loss",
+        num_epochs: int = 20,
+        cuda_device: int = -1,
+        grad_norm: float = None,
+        grad_clipping: float = None,
+        distributed: bool = None,
+        world_size: int = 1,
+        num_gradient_accumulation_steps: int = 1,
+        opt_level: Optional[str] = None,
+        no_grad: List[str] = None,
+        optimizer: common.Lazy[optimizers.Optimizer] = None,
+        learning_rate_scheduler: common.Lazy[learning_rate_schedulers.LearningRateScheduler] = None,
+        momentum_scheduler: common.Lazy[momentum_schedulers.MomentumScheduler] = None,
+        tensorboard_writer: common.Lazy[allen_tensorboard_writer.TensorboardWriter] = None,
+        moving_average: common.Lazy[moving_average.MovingAverage] = None,
+        checkpointer: common.Lazy[training.Checkpointer] = None,
+        batch_callbacks: List[training.BatchCallback] = None,
+        epoch_callbacks: List[training.EpochCallback] = None,
+    ) -> "training.Trainer":
+        if tensorboard_writer.construct() is None:
+            tensorboard_writer = common.Lazy(combo_tensorboard_writer.NullTensorboardWriter)
+        return super().from_partial_objects(
+            model=model,
+            serialization_dir=serialization_dir,
+            data_loader=data_loader,
+            validation_data_loader=validation_data_loader,
+            local_rank=local_rank,
+            patience=patience,
+            validation_metric=validation_metric,
+            num_epochs=num_epochs,
+            cuda_device=cuda_device,
+            grad_norm=grad_norm,
+            grad_clipping=grad_clipping,
+            distributed=distributed,
+            world_size=world_size,
+            num_gradient_accumulation_steps=num_gradient_accumulation_steps,
+            opt_level=opt_level,
+            no_grad=no_grad,
+            optimizer=optimizer,
+            learning_rate_scheduler=learning_rate_scheduler,
+            momentum_scheduler=momentum_scheduler,
+            tensorboard_writer=tensorboard_writer,
+            moving_average=moving_average,
+            checkpointer=checkpointer,
+            batch_callbacks=batch_callbacks,
+            epoch_callbacks=epoch_callbacks,
+        )

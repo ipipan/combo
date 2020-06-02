@@ -45,13 +45,15 @@ flags.DEFINE_string(name='pretrained_transformer_name', default='',
                     help='Pretrained transformer model name (see transformers from HuggingFace library for list of'
                          'available models) for transformers based embeddings.')
 flags.DEFINE_multi_enum(name='features', default=['token', 'char'],
-                        enum_values=['token', 'char', 'upostag', 'xpostag', 'lemma'],
+                        enum_values=['token', 'char', 'upostag', 'xpostag', 'lemma', 'feats'],
                         help='Features used to train model (required `token` and `char`)')
 flags.DEFINE_multi_enum(name='targets', default=['deprel', 'feats', 'head', 'lemma', 'upostag', 'xpostag'],
                         enum_values=['deprel', 'feats', 'head', 'lemma', 'upostag', 'xpostag', 'semrel', 'sent'],
                         help='Targets of the model (required `deprel` and `head`)')
 flags.DEFINE_string(name='serialization_dir', default=None,
                     help='Model serialization directory (default - system temp dir).')
+flags.DEFINE_boolean(name='tensorboard', default=False,
+                     help='When provided model will log tensorboard metrics.')
 
 # Finetune after training flags
 flags.DEFINE_string(name='finetuning_training_data_path', default='',
@@ -145,7 +147,7 @@ def run(_):
             FLAGS.input_file,
             FLAGS.output_file,
             FLAGS.batch_size,
-            FLAGS.silent,
+            not FLAGS.silent,
             use_dataset_reader,
         )
         manager.run()
@@ -181,7 +183,8 @@ def _get_ext_vars(finetuning: bool = False) -> Dict:
             'embedding_dim': str(FLAGS.embedding_dim),
             'cuda_device': str(FLAGS.cuda_device),
             'num_epochs': str(FLAGS.num_epochs),
-            'word_batch_size': str(FLAGS.word_batch_size)
+            'word_batch_size': str(FLAGS.word_batch_size),
+            'use_tensorboard': str(FLAGS.tensorboard),
         }
 
 

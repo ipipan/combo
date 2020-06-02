@@ -3,10 +3,10 @@ from typing import Optional
 
 import torch
 import torch.nn as nn
-from allennlp import nn as allen_nn, data
+from allennlp import nn as allen_nn, data, modules
 from allennlp.modules import token_embedders
+from allennlp.nn import util
 from overrides import overrides
-from transformers import modeling_auto
 
 from combo.models import base, dilated_cnn
 
@@ -25,7 +25,7 @@ class CharacterBasedWordEmbeddings(token_embedders.TokenEmbedder):
             num_embeddings=num_embeddings,
             embedding_dim=embedding_dim,
         )
-        self.dilated_cnn_encoder = dilated_cnn_encoder
+        self.dilated_cnn_encoder = modules.TimeDistributed(dilated_cnn_encoder)
         self.output_dim = embedding_dim
 
     def forward(self,
@@ -36,16 +36,8 @@ class CharacterBasedWordEmbeddings(token_embedders.TokenEmbedder):
 
         x = self.char_embed(x)
         x = x * char_mask.unsqueeze(-1).float()
-
-        BATCH_SIZE, SENTENCE_LENGTH, MAX_WORD_LENGTH, CHAR_EMB = x.size()
-
-        words = []
-        for i in range(SENTENCE_LENGTH):
-            word = x[:, i, :, :].reshape(BATCH_SIZE, MAX_WORD_LENGTH, CHAR_EMB).transpose(1, 2)
-            word = self.dilated_cnn_encoder(word)
-            word, _ = torch.max(word, dim=2)
-            words.append(word)
-        return torch.stack(words, dim=1)
+        x = self.dilated_cnn_encoder(x.transpose(2, 3))
+        return torch.max(x, dim=-1)[0]
 
     @overrides
     def get_output_dim(self) -> int:
@@ -120,7 +112,9 @@ class TransformersWordEmbedder(token_embedders.PretrainedTransformerMismatchedEm
                  projection_dropout_rate: Optional[float] = 0.0,
                  freeze_transformer: bool = True):
         super().__init__(model_name)
-        if freeze_transformer:
+        self.freeze_transformer = freeze_transformer
+        if self.freeze_transformer:
+            self._matched_embedder.eval()
             for param in self._matched_embedder.parameters():
                 param.requires_grad = False
         if projection_dim:
@@ -154,8 +148,56 @@ class TransformersWordEmbedder(token_embedders.PretrainedTransformerMismatchedEm
 
     @overrides
     def train(self, mode: bool):
-        self.projection_layer.train(mode)
+        if self.freeze_transformer:
+            self.projection_layer.train(mode)
+        else:
+            super().train(mode)
 
     @overrides
     def eval(self):
-        self.projection_layer.eval()
+        if self.freeze_transformer:
+            self.projection_layer.eval()
+        else:
+            super().eval()
+
+
+@token_embedders.TokenEmbedder.register("feats_embedding")
+class FeatsTokenEmbedder(token_embedders.Embedding):
+
+    def __init__(self,
+                 embedding_dim: int,
+                 num_embeddings: int = None,
+                 weight: torch.FloatTensor = None,
+                 padding_index: int = None,
+                 trainable: bool = True,
+                 max_norm: float = None,
+                 norm_type: float = 2.0,
+                 scale_grad_by_freq: bool = False,
+                 sparse: bool = False,
+                 vocab_namespace: str = "feats",
+                 pretrained_file: str = None,
+                 vocab: data.Vocabulary = None):
+        super().__init__(
+            embedding_dim=embedding_dim,
+            num_embeddings=num_embeddings,
+            weight=weight,
+            padding_index=padding_index,
+            trainable=trainable,
+            max_norm=max_norm,
+            norm_type=norm_type,
+            scale_grad_by_freq=scale_grad_by_freq,
+            sparse=sparse,
+            vocab_namespace=vocab_namespace,
+            pretrained_file=pretrained_file,
+            vocab=vocab
+        )
+
+    def forward(self, tokens: torch.Tensor) -> torch.Tensor:
+        # (batch_size, sentence_length, features_vocab_length)
+        mask = (tokens > 0).float()
+        # (batch_size, sentence_length, features_vocab_length, embedding_dim)
+        x = super().forward(tokens)
+        # (batch_size, sentence_length, embedding_dim)
+        return x.sum(dim=-2) / (
+            (mask.sum(dim=-1) + util.tiny_value_of_dtype(mask.dtype)).unsqueeze(dim=-1)
+        )

@@ -37,10 +37,10 @@ class TrainingEndToEndTest(unittest.TestCase):
             'cuda_device': '-1',
             'num_epochs': '1',
             'word_batch_size': '1',
+            'use_tensorboard': 'False'
         }
         params = Params.from_file(os.path.join(self.PROJECT_ROOT, 'config.template.jsonnet'),
                                   ext_vars=ext_vars)
-        params['trainer']['tensorboard_writer']['serialization_dir'] = os.path.join(self.TEST_DIR, 'metrics')
 
         # when
         model = train.train_model(params, serialization_dir=self.TEST_DIR)

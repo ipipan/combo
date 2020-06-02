@@ -28,8 +28,6 @@ local features = std.split(std.extVar("features"), " ");
 # Choice "feats", "lemma", "upostag", "xpostag", "semrel". "sent"
 # Required "deprel", "head"
 local targets = std.split(std.extVar("targets"), " ");
-# Path for tensorboard metrics, str
-local metrics_dir = "./runs";
 # Word embedding dimension, int
 # If pretrained_tokens is not null must much provided dimensionality
 local embedding_dim = std.parseInt(std.extVar("embedding_dim"));
@@ -42,6 +40,9 @@ local xpostag_dim = 100;
 # Upostag embedding dimension, int
 # (discarded if upostag not in features)
 local upostag_dim = 100;
+# Feats embedding dimension, int
+# (discarded if feats not in featres)
+local feats_dim = 100;
 # Lemma embedding dimension, int
 # (discarded if lemma not in features)
 local lemma_char_dim = 64;
@@ -67,7 +68,10 @@ local cycle_loss_n = 0;
 # Maximum length of the word, int
 # Shorter words are padded, longer - truncated
 local word_length = 30;
-
+# Whether to use tensorboard, bool
+local use_tensorboard = if std.extVar("use_tensorboard") == "True" then true else false;
+# Path for tensorboard metrics, str
+local metrics_dir = "./runs";
 
 # Helper functions
 local in_features(name) = !(std.length(std.find(name, features)) == 0);
@@ -140,6 +144,9 @@ assert pretrained_tokens == null || pretrained_transformer_name == null: "Can't 
                 },
                 # +2 for start and end token
                 min_padding_length: word_length + 2,
+            },
+            feats: {
+                type: "feats_indexer",
             },
         },
         lemma_indexers: {
@@ -233,6 +240,12 @@ assert pretrained_tokens == null || pretrained_transformer_name == null: "Can't 
                         activations: ["relu", "relu", "linear"],
                     },
                 },
+                feats: if in_features("feats") then {
+                    type: "feats_embedding",
+                    padding_index: 0,
+                    embedding_dim: feats_dim,
+                    vocab_namespace: "feats",
+                },
             },
         },
         loss_weights: loss_weights,
@@ -244,7 +257,8 @@ assert pretrained_tokens == null || pretrained_transformer_name == null: "Can't 
                 char_dim + projected_embedding_dim +
                 if in_features('xpostag') then xpostag_dim else 0 +
                 if in_features('lemma') then lemma_char_dim else 0 +
-                if in_features('upostag') then upostag_dim else 0,
+                if in_features('upostag') then upostag_dim else 0 +
+                if in_features('feats') then feats_dim else 0,
                 hidden_size: hidden_size,
                 num_layers: num_layers,
                 recurrent_dropout_probability: 0.33,
@@ -342,7 +356,7 @@ assert pretrained_tokens == null || pretrained_transformer_name == null: "Can't 
             ],
         },
     }),
-    trainer: {
+    trainer: std.prune({
         checkpointer: {
             type: "finishing_only_checkpointer",
         },
@@ -362,12 +376,12 @@ assert pretrained_tokens == null || pretrained_transformer_name == null: "Can't 
         learning_rate_scheduler: {
             type: "combo_scheduler",
         },
-        tensorboard_writer: {
+        tensorboard_writer: if use_tensorboard then {
             serialization_dir: metrics_dir,
             should_log_learning_rate: false,
             should_log_parameter_statistics: false,
             summary_interval: 100,
         },
         validation_metric: "+EM",
-    },
+    }),
 }

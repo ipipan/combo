@@ -6,6 +6,7 @@ from allennlp import data as allen_data
 from allennlp.common import checks
 from allennlp.data import fields as allen_fields, vocabulary
 from conllu import parser
+from dataclasses import dataclass
 from overrides import overrides
 
 from combo.data import fields
@@ -85,10 +86,11 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
     @overrides
     def text_to_instance(self, tree: conllu.TokenList) -> allen_data.Instance:
         fields_: Dict[str, allen_data.Field] = {}
-        tokens = [allen_data.Token(t['token'],
-                                   pos_=t.get('upostag'),
-                                   tag_=t.get('xpostag'),
-                                   lemma_=t.get('lemma'))
+        tokens = [Token(t['token'],
+                        pos_=t.get('upostag'),
+                        tag_=t.get('xpostag'),
+                        lemma_=t.get('lemma'),
+                        feats_=t.get('feats'))
                   for t in tree]
 
         # features
@@ -228,3 +230,8 @@ def get_slices_if_not_provided(vocab: allen_data.Vocabulary):
                 slices[name] = [idx]
         vocab.slices = slices
         return vocab.slices
+
+
+@dataclass
+class Token(allen_data.Token):
+    feats_: Optional[str] = None

@@ -57,8 +57,11 @@ class SemanticMultitaskPredictor(predictor.Predictor):
         logger.info('Took {} ms'.format((end_time - start_time) * 1000.0))
         return result
 
-    def predict_string(self, sentence: str):
+    def predict(self, sentence: str):
         return self.predict_json({'sentence': sentence})
+
+    def __call__(self, sentence: str):
+        return self.predict(sentence)
 
     @overrides
     def predict_json(self, inputs: common.JsonDict) -> common.JsonDict:

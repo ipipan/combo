@@ -90,8 +90,8 @@ Use either `--predictor_name semantic-multitask-predictor` or `--predictor_name 
 import combo.predict as predict
 
 model_path = "your_model.tar.gz"
-predictor = predict.SemanticMultitaskPredictor.from_pretrained(model_path)
-parsed_tree = predictor.predict_string("Sentence to parse.")["tree"]
+nlp = predict.SemanticMultitaskPredictor.from_pretrained(model_path)
+parsed_tree = nlp("Sentence to parse.")["tree"]
 ```
 
 ## Configuration

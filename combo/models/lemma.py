@@ -3,7 +3,7 @@ from typing import Optional, Dict, List, Union
 
 import torch
 import torch.nn as nn
-from allennlp import data, nn as allen_nn
+from allennlp import data, nn as allen_nn, modules
 from allennlp.common import checks
 
 from combo.models import base, dilated_cnn, utils
@@ -23,7 +23,7 @@ class LemmatizerModel(base.Predictor):
             num_embeddings=num_embeddings,
             embedding_dim=embedding_dim,
         )
-        self.dilated_cnn_encoder = dilated_cnn_encoder
+        self.dilated_cnn_encoder = modules.TimeDistributed(dilated_cnn_encoder)
         self.input_projection_layer = input_projection_layer
 
     def forward(self,
@@ -36,20 +36,11 @@ class LemmatizerModel(base.Predictor):
         encoder_emb = self.input_projection_layer(encoder_emb)
         char_embeddings = self.char_embed(chars)
 
-        BATCH_SIZE, SENTENCE_LENGTH, WORD_EMB = encoder_emb.size()
-        _, _, MAX_WORD_LENGTH, CHAR_EMB = char_embeddings.size()
-
-
+        BATCH_SIZE, _, MAX_WORD_LENGTH, CHAR_EMB = char_embeddings.size()
         encoder_emb = encoder_emb.unsqueeze(2).repeat(1, 1, MAX_WORD_LENGTH, 1)
 
-        pred = []
-        for i in range(SENTENCE_LENGTH):
-            word_emb = (encoder_emb[:, i, :, :].reshape(BATCH_SIZE, MAX_WORD_LENGTH, -1))
-            char_sent_emb = char_embeddings[:, i, :].reshape(BATCH_SIZE, MAX_WORD_LENGTH, CHAR_EMB)
-            x = torch.cat((char_sent_emb, word_emb), -1).transpose(2, 1)
-            x = self.dilated_cnn_encoder(x)
-            pred.append(x)
-        x = torch.stack(pred, dim=1).transpose(2, 3)
+        x = torch.cat((char_embeddings, encoder_emb), dim=-1).transpose(2, 3)
+        x = self.dilated_cnn_encoder(x).transpose(2, 3)
         output = {
             'prediction': x.argmax(-1),
             'probability': x
