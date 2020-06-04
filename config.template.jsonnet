@@ -3,10 +3,10 @@
 ########################################################################################
 # Training data path, str
 # Must be in CONNLU format (or it's extended version with semantic relation field).
-# Can accepted multiple paths when concatenated with ':', "path1:path2"
+# Can accepted multiple paths when concatenated with ',', "path1,path2"
 local training_data_path = std.extVar("training_data_path");
 # Validation data path, str
-# Can accepted multiple paths when concatenated with ':', "path1:path2"
+# Can accepted multiple paths when concatenated with ',', "path1,path2"
 local validation_data_path = if std.length(std.extVar("validation_data_path")) > 0 then std.extVar("validation_data_path");
 # Path to pretrained tokens, str or null
 local pretrained_tokens = if std.length(std.extVar("pretrained_tokens")) > 0 then std.extVar("pretrained_tokens");
@@ -36,13 +36,13 @@ local embedding_dim = std.parseInt(std.extVar("embedding_dim"));
 local predictors_dropout = 0.25;
 # Xpostag embedding dimension, int
 # (discarded if xpostag not in features)
-local xpostag_dim = 100;
+local xpostag_dim = 32;
 # Upostag embedding dimension, int
 # (discarded if upostag not in features)
-local upostag_dim = 100;
+local upostag_dim = 32;
 # Feats embedding dimension, int
 # (discarded if feats not in featres)
-local feats_dim = 100;
+local feats_dim = 32;
 # Lemma embedding dimension, int
 # (discarded if lemma not in features)
 local lemma_char_dim = 64;

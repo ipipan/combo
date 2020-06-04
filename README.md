@@ -24,7 +24,7 @@ Examples (for clarity without training/validation data paths):
 * train on gpu 0
 
     ```bash
-    combo --mode train --cuda_davice 0
+    combo --mode train --cuda_device 0
     ```
 
 * use pretrained embeddings:
@@ -42,13 +42,13 @@ Examples (for clarity without training/validation data paths):
 * predict only dependency tree:
 
     ```bash
-    combo --mode train --targets head --targets deprel
+    combo --mode train --targets head,deprel
     ```
 
 * use part-of-speech tags for predicting only dependency tree
 
     ```bash
-    combo --mode train --targets head --targets deprel --features token --features char --features upostag
+    combo --mode train --targets head,deprel --features token,char,upostag
     ```
 
 Advanced configuration: [Configuration](#configuration)

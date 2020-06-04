@@ -17,6 +17,8 @@ from combo.data import dataset
 from combo.utils import checks
 
 logger = logging.getLogger(__name__)
+_FEATURES = ["token", "char", "upostag", "xpostag", "lemma", "feats"]
+_TARGETS = ["deprel", "feats", "head", "lemma", "upostag", "xpostag", "semrel", "sent"]
 
 FLAGS = flags.FLAGS
 flags.DEFINE_enum(name="mode", default=None, enum_values=["train", "predict"],
@@ -30,9 +32,9 @@ flags.DEFINE_string(name="output_file", default="output.log",
 
 # Training flags
 flags.DEFINE_list(name="training_data_path", default="./tests/fixtures/example.conllu",
-                  help="Training data path")
+                  help="Training data path(s)")
 flags.DEFINE_list(name="validation_data_path", default="",
-                  help="Validation data path")
+                  help="Validation data path(s)")
 flags.DEFINE_string(name="pretrained_tokens", default="",
                     help="Pretrained tokens embeddings path")
 flags.DEFINE_integer(name="embedding_dim", default=300,
@@ -42,14 +44,12 @@ flags.DEFINE_integer(name="num_epochs", default=400,
 flags.DEFINE_integer(name="word_batch_size", default=2500,
                      help="Minimum words in batch")
 flags.DEFINE_string(name="pretrained_transformer_name", default="",
-                    help="Pretrained transformer model name (see transformers from HuggingFace library for list of"
+                    help="Pretrained transformer model name (see transformers from HuggingFace library for list of "
                          "available models) for transformers based embeddings.")
-flags.DEFINE_multi_enum(name="features", default=["token", "char"],
-                        enum_values=["token", "char", "upostag", "xpostag", "lemma", "feats"],
-                        help="Features used to train model (required 'token' and 'char')")
-flags.DEFINE_multi_enum(name="targets", default=["deprel", "feats", "head", "lemma", "upostag", "xpostag"],
-                        enum_values=["deprel", "feats", "head", "lemma", "upostag", "xpostag", "semrel", "sent"],
-                        help="Targets of the model (required `deprel` and `head`)")
+flags.DEFINE_list(name="features", default=["token", "char"],
+                  help=f"Features used to train model (required 'token' and 'char'). Possible values: {_FEATURES}.")
+flags.DEFINE_list(name="targets", default=["deprel", "feats", "head", "lemma", "upostag", "xpostag"],
+                  help=f"Targets of the model (required `deprel` and `head`). Possible values: {_TARGETS}.")
 flags.DEFINE_string(name="serialization_dir", default=None,
                     help="Model serialization directory (default - system temp dir).")
 flags.DEFINE_boolean(name="tensorboard", default=False,
@@ -190,9 +190,21 @@ def _get_ext_vars(finetuning: bool = False) -> Dict:
 def main():
     """Parse flags."""
     flags.register_validator(
+        "features",
+        lambda values: all(
+            value in _FEATURES for value in values),
+        message="Flags --features contains unknown value(s)."
+    )
+    flags.register_validator(
         "mode",
         lambda value: value is not None,
         message="Flag --mode must be set with either `predict` or `train` value")
+    flags.register_validator(
+        "targets",
+        lambda values: all(
+            value in _TARGETS for value in values),
+        message="Flag --targets contains unknown value(s)."
+    )
     app.run(run)
 
 

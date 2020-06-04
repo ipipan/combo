@@ -69,7 +69,7 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
 
     @overrides
     def _read(self, file_path: str) -> Iterable[allen_data.Instance]:
-        file_path = [file_path] if len(file_path.split(":")) == 0 else file_path.split(":")
+        file_path = [file_path] if len(file_path.split(",")) == 0 else file_path.split(",")
 
         for conllu_file in file_path:
             with open(conllu_file, "r") as file:
