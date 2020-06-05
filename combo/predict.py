@@ -1,9 +1,13 @@
 import collections
+import errno
 import logging
+import os
 import time
 from typing import List
 
 import conllu
+import requests
+import tqdm
 from allennlp import data as allen_data, common, models
 from allennlp.common import util
 from allennlp.data import tokenizers
@@ -11,6 +15,7 @@ from allennlp.predictors import predictor
 from overrides import overrides
 
 from combo import data
+from combo.utils import download
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +159,17 @@ class SemanticMultitaskPredictor(predictor.Predictor):
         util.import_module_and_submodules("combo.commands")
         util.import_module_and_submodules("combo.models")
         util.import_module_and_submodules("combo.training")
-        model = models.Model.from_archive(path)
+
+        if os.path.exists(path):
+            model_path = path
+        else:
+            try:
+                model_path = download.download_file(path)
+            except Exception as e:
+                logger.error(e)
+                raise e
+
+        model = models.Model.from_archive(model_path)
         dataset_reader = allen_data.DatasetReader.from_params(
-            models.load_archive(path).config["dataset_reader"])
+            models.load_archive(model_path).config["dataset_reader"])
         return cls(model, dataset_reader, tokenizer)

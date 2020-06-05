@@ -7,10 +7,12 @@ REQUIREMENTS = [
     'conllu==2.3.2',
     'joblib==0.14.1',
     'jsonnet==0.15.0',
+    'requests==2.23.0',
     'overrides==3.0.0',
     'tensorboard==2.1.0',
     'torch==1.5.0',
     'torchvision==0.6.0',
+    'tqdm==4.43.0'
     'transformers==2.9.1',
 ]
 

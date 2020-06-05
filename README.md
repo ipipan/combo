@@ -5,6 +5,11 @@ Clone this repository and run:
 python setup.py develop
 ```
 
+### Problems & solutions
+* **jsonnet** installation error
+
+use `conda install -c conda-forge jsonnet=0.15.0`
+
 ## Training
 
 Command:
