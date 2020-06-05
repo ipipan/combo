@@ -57,6 +57,7 @@ def _requests_retry_session(
     status_forcelist=(404, 500, 502, 504),
     session=None,
 ):
+    """Source: https://www.peterbe.com/plog/best-practice-with-retries-with-requests"""
     session = session or requests.Session()
     retry = urllib3.Retry(
         total=retries,
