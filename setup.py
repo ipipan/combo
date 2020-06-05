@@ -12,7 +12,7 @@ REQUIREMENTS = [
     'tensorboard==2.1.0',
     'torch==1.5.0',
     'torchvision==0.6.0',
-    'tqdm==4.43.0'
+    'tqdm==4.43.0',
     'transformers==2.9.1',
 ]
 
