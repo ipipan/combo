@@ -74,13 +74,6 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
         for conllu_file in file_path:
             with open(conllu_file, "r") as file:
                 for annotation in conllu.parse_incr(file, fields=self.fields, field_parsers=self.field_parsers):
-                    # CoNLLU annotations sometimes add back in words that have been elided
-                    # in the original sentence; we remove these, as we're just predicting
-                    # dependencies for the original sentence.
-                    # We filter by integers here as elided words have a non-integer word id,
-                    # as parsed by the conllu python library.
-                    annotation = conllu.TokenList([x for x in annotation if isinstance(x["id"], int)],
-                                                  metadata=annotation.metadata)
                     yield self.text_to_instance(annotation)
 
     @overrides
@@ -91,7 +84,7 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
                          tag_=t.get("xpostag"),
                          lemma_=t.get("lemma"),
                          feats_=t.get("feats"))
-                  for t in tree]
+                  for t in tree if isinstance(t["id"], int)]
 
         # features
         text_field = allen_fields.TextField(tokens, self._token_indexers)

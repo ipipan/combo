@@ -100,7 +100,8 @@ class SemanticMultitaskPredictor(predictor.Predictor):
     def _predictions_as_tree(self, predictions, instance):
         tree = instance.fields["metadata"]["input"]
         field_names = instance.fields["metadata"]["field_names"]
-        for idx, token in enumerate(tree):
+        tree_tokens = [t for t in tree if isinstance(t["id"], int)]
+        for idx, token in enumerate(tree_tokens):
             for field_name in field_names:
                 if field_name in predictions:
                     if field_name in ["xpostag", "upostag", "semrel", "deprel"]:
