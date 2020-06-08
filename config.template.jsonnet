@@ -108,7 +108,7 @@ assert pretrained_tokens == null || pretrained_transformer_name == null: "Can't 
         features: features,
         targets: targets,
         # Whether data contains semantic relation field, bool
-        use_sem: if in_features("semrel") then true else false,
+        use_sem: if in_targets("semrel") then true else false,
         token_indexers: {
             token: if use_transformer then {
                 type: "pretrained_transformer_mismatched_tmp_fix",
@@ -254,11 +254,11 @@ assert pretrained_tokens == null || pretrained_transformer_name == null: "Can't 
             layer_dropout_probability: 0.33,
             stacked_bilstm: {
                 input_size:
-                char_dim + projected_embedding_dim +
-                if in_features('xpostag') then xpostag_dim else 0 +
-                if in_features('lemma') then lemma_char_dim else 0 +
-                if in_features('upostag') then upostag_dim else 0 +
-                if in_features('feats') then feats_dim else 0,
+                (char_dim + projected_embedding_dim +
+                (if in_features('xpostag') then xpostag_dim else 0) +
+                (if in_features('lemma') then lemma_char_dim else 0) +
+                (if in_features('upostag') then upostag_dim else 0) +
+                (if in_features('feats') then feats_dim else 0)),
                 hidden_size: hidden_size,
                 num_layers: num_layers,
                 recurrent_dropout_probability: 0.33,
