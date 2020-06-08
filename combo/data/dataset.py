@@ -52,7 +52,7 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
         if self._use_sem:
             fields = list(fields)
             fields.append("semrel")
-            field_parsers["semrel"] = lambda line, i: parser.parse_nullable_value(line[i]),
+            field_parsers["semrel"] = lambda line, i: line[i]
         self.field_parsers = field_parsers
         self.fields = tuple(fields)
 
