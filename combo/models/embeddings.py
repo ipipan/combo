@@ -127,6 +127,7 @@ class TransformersWordEmbedder(token_embedders.PretrainedTransformerMismatchedEm
             self.projection_layer = None
             self.output_dim = super().get_output_dim()
 
+    @overrides
     def forward(
             self,
             token_ids: torch.LongTensor,
@@ -135,12 +136,32 @@ class TransformersWordEmbedder(token_embedders.PretrainedTransformerMismatchedEm
             wordpiece_mask: torch.BoolTensor,
             type_ids: Optional[torch.LongTensor] = None,
             segment_concat_mask: Optional[torch.BoolTensor] = None,
-    ) -> torch.Tensor:
-        x = super().forward(token_ids=token_ids, mask=mask, offsets=offsets, wordpiece_mask=wordpiece_mask,
-                            type_ids=type_ids, segment_concat_mask=segment_concat_mask)
+    ) -> torch.Tensor:  # type: ignore
+        """TODO remove (and call super) when fixed in AllenNLP (fc47bf6ae5c0df6d473103d459b75fa7edbdd979)"""
+        # Shape: [batch_size, num_wordpieces, embedding_size].
+        embeddings = self._matched_embedder(
+            token_ids, wordpiece_mask, type_ids=type_ids, segment_concat_mask=segment_concat_mask
+        )
+
+        # span_embeddings: (batch_size, num_orig_tokens, max_span_length, embedding_size)
+        # span_mask: (batch_size, num_orig_tokens, max_span_length)
+        span_embeddings, span_mask = util.batched_span_select(embeddings.contiguous(), offsets)
+        span_mask = span_mask.unsqueeze(-1)
+        span_embeddings *= span_mask  # zero out paddings
+
+        span_embeddings_sum = span_embeddings.sum(2)
+        span_embeddings_len = span_mask.sum(2)
+        # Shape: (batch_size, num_orig_tokens, embedding_size)
+        orig_embeddings = span_embeddings_sum / span_embeddings_len
+
+        # All the places where the span length is zero, write in zeros.
+        orig_embeddings[(span_embeddings_len == 0).expand(orig_embeddings.shape)] = 0
+
+        # TODO end remove
+
         if self.projection_layer:
-            x = self.projection_layer(x)
-        return x
+            orig_embeddings = self.projection_layer(orig_embeddings)
+        return orig_embeddings
 
     @overrides
     def get_output_dim(self):

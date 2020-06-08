@@ -14,6 +14,7 @@ REQUIREMENTS = [
     'torchvision==0.6.0',
     'tqdm==4.43.0',
     'transformers==2.9.1',
+    'urllib3==1.24.2',
 ]
 
 setup(
