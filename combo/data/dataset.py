@@ -1,5 +1,5 @@
 import logging
-from typing import Union, List, Dict, Iterable, Optional
+from typing import Union, List, Dict, Iterable, Optional, Any
 
 import conllu
 from allennlp import data as allen_data
@@ -118,7 +118,7 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
         return allen_data.Instance(fields_)
 
     @staticmethod
-    def _feat_values(tree: conllu.TokenList):
+    def _feat_values(tree: List[Dict[str, Any]]):
         features = []
         for token in tree:
             token_features = []
@@ -127,7 +127,11 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
                     if feat in ["_", "__ROOT__"]:
                         pass
                     else:
-                        token_features.append(feat + "=" + value)
+                        # Handle case where feature is binary (doesn't have associated value)
+                        if value:
+                            token_features.append(feat + "=" + value)
+                        else:
+                            token_features.append(feat)
             features.append(token_features)
         return features
 
