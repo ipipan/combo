@@ -52,7 +52,11 @@ class TokenFeatsIndexer(data.TokenIndexer):
             if feat in ["_", "__ROOT__"]:
                 pass
             else:
-                features.append(feat + "=" + value)
+                # Handle case where feature is binary (doesn't have associated value)
+                if value:
+                    features.append(feat + "=" + value)
+                else:
+                    features.append(feat)
         return features
 
     @overrides

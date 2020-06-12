@@ -56,10 +56,10 @@ flags.DEFINE_boolean(name="tensorboard", default=False,
                      help="When provided model will log tensorboard metrics.")
 
 # Finetune after training flags
-flags.DEFINE_string(name="finetuning_training_data_path", default="",
-                    help="Training data path")
-flags.DEFINE_string(name="finetuning_validation_data_path", default="",
-                    help="Validation data path")
+flags.DEFINE_list(name="finetuning_training_data_path", default="",
+                  help="Training data path(s)")
+flags.DEFINE_list(name="finetuning_validation_data_path", default="",
+                  help="Validation data path(s)")
 flags.DEFINE_string(name="config_path", default="config.template.jsonnet",
                     help="Config file path.")
 
@@ -101,7 +101,8 @@ def run(_):
         logger.info(f"Training model stored in: {serialization_dir}")
 
         if FLAGS.finetuning_training_data_path:
-            checks.file_exists(FLAGS.finetuning_training_data_path)
+            for f in FLAGS.finetuning_training_data_path:
+                checks.file_exists(f)
 
             # Loading will be performed from stored model.tar.gz
             del model
@@ -171,9 +172,9 @@ def _get_ext_vars(finetuning: bool = False) -> Dict:
         return {}
     return {
         "training_data_path": (
-            ":".join(FLAGS.training_data_path) if not finetuning else FLAGS.finetuning_training_data_path),
+            ",".join(FLAGS.training_data_path if not finetuning else FLAGS.finetuning_training_data_path)),
         "validation_data_path": (
-            ":".join(FLAGS.validation_data_path) if not finetuning else FLAGS.finetuning_validation_data_path),
+            ",".join(FLAGS.validation_data_path if not finetuning else FLAGS.finetuning_validation_data_path)),
         "pretrained_tokens": FLAGS.pretrained_tokens,
         "pretrained_transformer_name": FLAGS.pretrained_transformer_name,
         "features": " ".join(FLAGS.features),

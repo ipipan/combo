@@ -58,6 +58,7 @@ local loss_weights = {
     feats: 0.2,
     deprel: 0.8,
     head: 0.2,
+    semrel: 0.05,
 };
 # Encoder hidden size, int
 local hidden_size = 512;

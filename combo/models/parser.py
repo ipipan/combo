@@ -42,7 +42,11 @@ class HeadPredictionModel(base.Predictor):
             lengths = mask.data.sum(dim=1).long().cpu().numpy() + 1
             for idx, length in enumerate(lengths):
                 probs = x[idx, :].softmax(dim=-1).cpu().numpy()
-                probs[:, 0] = 0
+
+                # We do not want any word to be parent of the root node (ROOT, 0).
+                # Also setting it to -1 instead of 0 fixes edge case where softmax made all
+                # but ROOT prediction to EXACTLY 0.0 and it might cause in many ROOT -> word edges)
+                probs[:, 0] = -1
                 heads, _ = chu_liu_edmonds.decode_mst(probs.T, length=length, has_labels=False)
                 heads[0] = 0
                 pred.append(heads)
