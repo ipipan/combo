@@ -94,7 +94,7 @@ class SemanticMultitaskModel(allen_models.Model):
                                        sample_weights=sample_weights)
         lemma_output = self._optional(self.lemmatizer,
                                       (encoder_emb[:, 1:], sentence.get("char").get("token_characters")
-                                      if sentence.get("char") else None),
+                                       if sentence.get("char") else None),
                                       mask=word_mask[:, 1:],
                                       labels=lemma.get("char").get("token_characters") if lemma else None,
                                       sample_weights=sample_weights)
