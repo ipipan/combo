@@ -1,7 +1,6 @@
 import collections
 import logging
 import os
-import time
 from typing import List, Union
 
 import conllu
@@ -24,12 +23,105 @@ class SemanticMultitaskPredictor(predictor.Predictor):
     def __init__(self,
                  model: models.Model,
                  dataset_reader: allen_data.DatasetReader,
-                 tokenizer: allen_data.Tokenizer = tokenizers.WhitespaceTokenizer()) -> None:
+                 tokenizer: allen_data.Tokenizer = tokenizers.WhitespaceTokenizer(),
+                 batch_size: int = 500) -> None:
         super().__init__(model, dataset_reader)
-        self.batch_size = 1000
+        self.batch_size = batch_size
         self.vocab = model.vocab
         self._dataset_reader.generate_labels = False
         self._tokenizer = tokenizer
+
+    def __call__(self, sentence: Union[str, List[str], List[List[str]], List[data.Sentence]]):
+        """Depending on the input uses (or ignores) tokenizer.
+        When model isn't only text-based only List[data.Sentence] is possible input.
+
+        * str - tokenizer is used
+        * List[str] - tokenizer is used for each string (treated as list of raw sentences)
+        * List[List[str]] - tokenizer isn't used (treated as list of tokenized sentences)
+        * List[data.Sentence] - tokenizer isn't used (treated as list of tokenized sentences)
+
+        :param sentence: sentence(s) representation
+        :return: Sentence or List[Sentence] depending on the input
+        """
+        return self.predict(sentence)
+
+    def predict(self, sentence: Union[str, List[str], List[List[str]], List[data.Sentence]]):
+        if isinstance(sentence, str):
+            return data.Sentence.from_json(self.predict_json({"sentence": sentence}))
+        elif isinstance(sentence, list):
+            if len(sentence) == 0:
+                return []
+            example = sentence[0]
+            if isinstance(example, str) or isinstance(example, list):
+                sentences = []
+                for sentences_batch in util.lazy_groups_of(sentence, self.batch_size):
+                    trees = self.predict_batch_json([self._to_input_json(s) for s in sentences_batch])
+                    sentences.extend([data.Sentence.from_json(t) for t in trees])
+                return sentences
+            elif isinstance(example, data.Sentence):
+                sentences = []
+                for sentences_batch in util.lazy_groups_of(sentence, self.batch_size):
+                    trees = self.predict_batch_instance([self._to_input_instance(s) for s in sentences_batch],
+                                                        serialize=False)
+                    sentences.extend([data.Sentence.from_json(t) for t in trees])
+                return sentences
+            else:
+                raise ValueError("List must have either sentences as str, List[str] or Sentence object.")
+        else:
+            raise ValueError("Input must be either string or list of strings.")
+
+    @overrides
+    def predict_batch_instance(self, instances: List[allen_data.Instance], serialize: bool = True) -> List[
+        common.JsonDict]:
+        trees = []
+        predictions = super().predict_batch_instance(instances)
+        for prediction, instance in zip(predictions, instances):
+            tree = self._predictions_as_tree(prediction, instance)
+            if serialize:
+                tree = tree.serialize()
+            tree_json = util.sanitize(tree)
+            trees.append(collections.OrderedDict([
+                ("tree", tree_json),
+            ]))
+        return trees
+
+    @overrides
+    def predict_instance(self, instance: allen_data.Instance, serialize: bool = True) -> common.JsonDict:
+        tree = self.predict_instance_as_tree(instance)
+        if serialize:
+            tree = tree.serialize()
+        tree_json = util.sanitize(tree)
+        result = collections.OrderedDict([
+            ("tree", tree_json),
+        ])
+        return result
+
+    @overrides
+    def predict_batch_json(self, inputs: List[common.JsonDict]) -> List[common.JsonDict]:
+        trees = []
+        instances = self._batch_json_to_instances(inputs)
+        predictions = self.predict_batch_instance(instances, serialize=False)
+        for prediction, instance in zip(predictions, instances):
+            tree = self._predictions_as_tree(prediction, instance)
+            tree_json = util.sanitize(tree)
+            trees.append(collections.OrderedDict([
+                ("tree", tree_json),
+            ]))
+        return trees
+
+    @overrides
+    def predict_json(self, inputs: common.JsonDict) -> common.JsonDict:
+        instance = self._json_to_instance(inputs)
+        tree = self.predict_instance_as_tree(instance)
+        tree_json = util.sanitize(tree)
+        result = collections.OrderedDict([
+            ("tree", tree_json),
+        ])
+        return result
+
+    def predict_instance_as_tree(self, instance: allen_data.Instance) -> conllu.TokenList:
+        predictions = super().predict_instance(instance)
+        return self._predictions_as_tree(predictions, instance)
 
     @overrides
     def _json_to_instance(self, json_dict: common.JsonDict) -> allen_data.Instance:
@@ -56,71 +148,10 @@ class SemanticMultitaskPredictor(predictor.Predictor):
         else:
             return str(outputs["tree"]) + "\n"
 
-    def predict(self, sentence: Union[str, List[str]]):
-        if isinstance(sentence, str):
-            return data.Sentence.from_json(self.predict_json({"sentence": sentence}))
-        elif isinstance(sentence, list):
-            sentences = []
-            for sentences_batch in util.lazy_groups_of(sentence, self.batch_size):
-                trees = self.predict_batch_json([self._to_input_json(s) for s in sentences_batch])
-                sentences.extend([data.Sentence.from_json(t) for t in trees])
-            return sentences
-        else:
-            raise ValueError("Input must be either string or list of strings.")
-
-    def __call__(self, sentence: Union[str, List[str]]):
-        return self.predict(sentence)
-
-    @overrides
-    def predict_batch_instance(self, instances: List[allen_data.Instance]) -> List[common.JsonDict]:
-        trees = []
-        predictions = super().predict_batch_instance(instances)
-        for prediction, instance in zip(predictions, instances):
-            tree_json = util.sanitize(self._predictions_as_tree(prediction, instance).serialize())
-            trees.append(collections.OrderedDict([
-                ("tree", tree_json),
-            ]))
-        return trees
-
-    @overrides
-    def predict_instance(self, instance: allen_data.Instance) -> common.JsonDict:
-        tree = self.predict_instance_as_tree(instance)
-        tree_json = util.sanitize(tree.serialize())
-        result = collections.OrderedDict([
-            ("tree", tree_json),
-        ])
-        return result
-
-    @overrides
-    def predict_batch_json(self, inputs: List[common.JsonDict]) -> List[common.JsonDict]:
-        trees = []
-        instances = self._batch_json_to_instances(inputs)
-        predictions = super().predict_batch_json(inputs)
-        for prediction, instance in zip(predictions, instances):
-            tree_json = util.sanitize(self._predictions_as_tree(prediction, instance))
-            trees.append(collections.OrderedDict([
-                ("tree", tree_json),
-            ]))
-        return trees
-
-    @overrides
-    def predict_json(self, inputs: common.JsonDict) -> common.JsonDict:
-        instance = self._json_to_instance(inputs)
-        tree = self.predict_instance_as_tree(instance)
-        tree_json = util.sanitize(tree)
-        result = collections.OrderedDict([
-            ("tree", tree_json),
-        ])
-        return result
-
-    def predict_instance_as_tree(self, instance: allen_data.Instance) -> conllu.TokenList:
-        predictions = super().predict_instance(instance)
-        return self._predictions_as_tree(predictions, instance)
-
     @staticmethod
     def _sentence_to_tree(sentence: List[str]):
         d = collections.OrderedDict
-        return conllu.TokenList(
+        return _TokenList(
             [d({"id": idx, "token": token}) for
              idx, token
              in enumerate(sentence)],
@@ -130,6 +161,10 @@ class SemanticMultitaskPredictor(predictor.Predictor):
     @staticmethod
     def _to_input_json(sentence: str):
         return {"sentence": sentence}
+
+    def _to_input_instance(self, sentence: data.Sentence) -> allen_data.Instance:
+        tree = _TokenList([t.__dict__ for t in sentence.tokens])
+        return self._dataset_reader.text_to_instance(tree)
 
     def _predictions_as_tree(self, predictions, instance):
         tree = instance.fields["metadata"]["input"]
@@ -190,7 +225,7 @@ class SemanticMultitaskPredictor(predictor.Predictor):
         return cls(model, dataset_reader, tokenizers.SpacyTokenizer())
 
     @classmethod
-    def from_pretrained(cls, path: str, tokenizer=tokenizers.SpacyTokenizer()):
+    def from_pretrained(cls, path: str, tokenizer=tokenizers.SpacyTokenizer(), batch_size: int = 500):
         util.import_module_and_submodules("combo.commands")
         util.import_module_and_submodules("combo.models")
         util.import_module_and_submodules("combo.training")
@@ -209,4 +244,11 @@ class SemanticMultitaskPredictor(predictor.Predictor):
         model = archive.model
         dataset_reader = allen_data.DatasetReader.from_params(
             archive.config["dataset_reader"])
-        return cls(model, dataset_reader, tokenizer)
+        return cls(model, dataset_reader, tokenizer, batch_size)
+
+
+class _TokenList(conllu.TokenList):
+
+    @overrides
+    def __repr__(self):
+        return 'TokenList<' + ', '.join(token['token'] for token in self) + '>'
