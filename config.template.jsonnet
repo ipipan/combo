@@ -112,7 +112,7 @@ assert pretrained_tokens == null || pretrained_transformer_name == null: "Can't 
         use_sem: if in_targets("semrel") then true else false,
         token_indexers: {
             token: if use_transformer then {
-                type: "pretrained_transformer_mismatched_tmp_fix",
+                type: "pretrained_transformer_mismatched",
                 model_name: pretrained_transformer_name,
             } else {
                 # SingleIdTokenIndexer, token as single int

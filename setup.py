@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 
 REQUIREMENTS = [
     'absl-py==0.9.0',
-    'allennlp==1.0.0rc5',
+    'allennlp==1.0.0',
     'conllu==2.3.2',
     'joblib==0.14.1',
     'jsonnet==0.15.0',

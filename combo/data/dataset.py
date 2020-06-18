@@ -230,6 +230,14 @@ def get_slices_if_not_provided(vocab: allen_data.Vocabulary):
         return vocab.slices
 
 
-@dataclass
+@dataclass(init=False, repr=False)
 class _Token(allen_data.Token):
-    feats_: Optional[str] = None
+    __slots__ = allen_data.Token.__slots__ + ['feats_']
+
+    feats_: Optional[str]
+
+    def __init__(self, text: str = None, idx: int = None, idx_end: int = None, lemma_: str = None, pos_: str = None,
+                 tag_: str = None, dep_: str = None, ent_type_: str = None, text_id: int = None, type_id: int = None,
+                 feats_: str = None) -> None:
+        super().__init__(text, idx, idx_end, lemma_, pos_, tag_, dep_, ent_type_, text_id, type_id)
+        self.feats_ = feats_

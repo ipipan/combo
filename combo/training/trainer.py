@@ -128,7 +128,7 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
                             num_batches,
                             reset=True,
                             world_size=self._world_size,
-                            cuda_device=[self.cuda_device],
+                            cuda_device=self.cuda_device,
                         )
 
                         # Check validation metric for early stopping

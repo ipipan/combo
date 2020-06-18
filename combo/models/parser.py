@@ -67,11 +67,15 @@ class HeadPredictionModel(base.Predictor):
     def _cycle_loss(self, pred: torch.Tensor):
         BATCH_SIZE, _, _ = pred.size()
         loss = pred.new_zeros(BATCH_SIZE)
-        # 1: as using non __ROOT__ tokens
-        x = pred[:, 1:, 1:]
-        for _ in range(self.cycle_loss_n):
-            loss += self._batch_trace(x) / BATCH_SIZE
-            x = x.bmm(pred[:, 1:, 1:])
+        # Index from 1: as using non __ROOT__ tokens
+        pred = pred.softmax(-1)[:, 1:, 1:]
+        x = pred
+        for i in range(self.cycle_loss_n):
+            loss += self._batch_trace(x)
+
+            # Don't multiple on last iteration
+            if i < self.cycle_loss_n - 1:
+                x = x.bmm(pred)
 
         return loss
 
@@ -83,7 +87,7 @@ class HeadPredictionModel(base.Predictor):
         identity = x.new_tensor(torch.eye(N))
         identity = identity.reshape((1, N, N))
         batch_identity = identity.repeat(BATCH_SIZE, 1, 1)
-        return (x * batch_identity).sum()
+        return (x * batch_identity).sum((-1, -2))
 
     def _loss(self, pred: torch.Tensor, true: torch.Tensor, mask: torch.BoolTensor,
               sample_weights: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:

@@ -1,3 +1,2 @@
 from .token_characters_indexer import TokenCharactersIndexer
 from .token_features_indexer import TokenFeatsIndexer
-from .pretrained_transformer_mismatched_indexer import PretrainedTransformerMismatchedIndexer

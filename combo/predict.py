@@ -29,6 +29,7 @@ class SemanticMultitaskPredictor(predictor.Predictor):
         self.batch_size = batch_size
         self.vocab = model.vocab
         self._dataset_reader.generate_labels = False
+        self._dataset_reader.lazy = True
         self._tokenizer = tokenizer
 
     def __call__(self, sentence: Union[str, List[str], List[List[str]], List[data.Sentence]]):
@@ -71,8 +72,8 @@ class SemanticMultitaskPredictor(predictor.Predictor):
             raise ValueError("Input must be either string or list of strings.")
 
     @overrides
-    def predict_batch_instance(self, instances: List[allen_data.Instance], serialize: bool = True) -> List[
-        common.JsonDict]:
+    def predict_batch_instance(self, instances: List[allen_data.Instance], serialize: bool = True
+                               ) -> List[common.JsonDict]:
         trees = []
         predictions = super().predict_batch_instance(instances)
         for prediction, instance in zip(predictions, instances):
