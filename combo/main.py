@@ -143,6 +143,8 @@ def run(_):
                     file.writelines(predictor.predict_instance_as_tree(tree).serialize())
     else:
         use_dataset_reader = ".conllu" in FLAGS.input_file.lower()
+        if FLAGS.silent:
+            logging.getLogger("allennlp.common.params").disabled = True
         manager = allen_predict._PredictManager(
             _get_predictor(),
             FLAGS.input_file,
