@@ -1,30 +1,65 @@
-from typing import Optional, List
-
+import collections
 from dataclasses import dataclass, field
+from typing import Optional, List, Dict, Any, Union, Tuple
+
+import conllu
+from dataclasses_json import dataclass_json
+from overrides import overrides
 
 
+@dataclass_json
 @dataclass
 class Token:
+    id: Optional[Union[int, Tuple]] = None
     token: Optional[str] = None
-    id: Optional[int] = None
     lemma: Optional[str] = None
     upostag: Optional[str] = None
     xpostag: Optional[str] = None
+    feats: Optional[str] = None
     head: Optional[int] = None
     deprel: Optional[str] = None
-    feats: Optional[str] = None
-
-    @classmethod
-    def from_json(cls, json):
-        return cls(**json)
+    deps: Optional[str] = None
+    misc: Optional[str] = None
 
 
+@dataclass_json
 @dataclass
 class Sentence:
     tokens: List[Token] = field(default_factory=list)
-    embedding: List[float] = field(default_factory=list)
+    sentence_embedding: List[float] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=collections.OrderedDict)
 
-    @classmethod
-    def from_json(cls, json):
-        return cls(tokens=[Token.from_json(t) for t in json["tree"]],
-                   embedding=json.get("sentence_embedding", []))
+
+class _TokenList(conllu.TokenList):
+
+    @overrides
+    def __repr__(self):
+        return 'TokenList<' + ', '.join(token['token'] for token in self) + '>'
+
+
+def sentence2conllu(sentence: Sentence) -> conllu.TokenList:
+    tokens = [collections.OrderedDict(t.to_dict()) for t in sentence.tokens]
+    # Range tokens must be tuple not list, this is conllu library requirement
+    for t in tokens:
+        if type(t["id"]) == list:
+            t["id"] = tuple(t["id"])
+    return _TokenList(tokens=tokens,
+                      metadata=sentence.metadata)
+
+
+def tokens2conllu(tokens: List[str]) -> conllu.TokenList:
+    return _TokenList(
+        [collections.OrderedDict({"id": idx, "token": token}) for
+         idx, token
+         in enumerate(tokens, start=1)],
+        metadata=collections.OrderedDict()
+    )
+
+
+def conllu2sentence(conllu_sentence: conllu.TokenList,
+                    sentence_embedding: List[float]) -> Sentence:
+    return Sentence(
+        tokens=[Token.from_dict(t) for t in conllu_sentence.tokens],
+        sentence_embedding=sentence_embedding,
+        metadata=conllu_sentence.metadata
+    )

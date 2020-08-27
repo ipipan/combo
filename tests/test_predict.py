@@ -30,9 +30,10 @@ class PredictionTest(unittest.TestCase):
         raw_sentence_collection = ["Test."]
         tokenized_sentence_collection = [["Test", "."]]
         wrapped_tokenized_sentence = [data.Sentence(tokens=[
-            data.Token(id=0, token="Test"),
-            data.Token(id=1, token=".")
+            data.Token(id=1, token="Test"),
+            data.Token(id=2, token=".")
         ])]
+        api_wrapped_tokenized_sentence = [data.conllu2sentence(data.tokens2conllu(["Test", "."]), [])]
         nlp = predict.SemanticMultitaskPredictor.from_pretrained(os.path.join(self.FIXTURES_ROOT, "model.tar.gz"))
 
         # when
@@ -40,7 +41,8 @@ class PredictionTest(unittest.TestCase):
             nlp(raw_sentence),
             nlp(raw_sentence_collection)[0],
             nlp(tokenized_sentence_collection)[0],
-            nlp(wrapped_tokenized_sentence)[0]
+            nlp(wrapped_tokenized_sentence)[0],
+            nlp(api_wrapped_tokenized_sentence)[0]
         ]
 
         # then

@@ -5,6 +5,7 @@ REQUIREMENTS = [
     'absl-py==0.9.0',
     'allennlp==1.0.0',
     'conllu==2.3.2',
+    'dataclasses-json==0.5.2',
     'joblib==0.14.1',
     'jsonnet==0.15.0',
     'requests==2.23.0',
