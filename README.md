@@ -1,5 +1,9 @@
 ## Installation
 
+### HERBERTA notes:
+
+Install herberta transformers package **before** running command below
+
 Clone this repository and run:
 ```bash
 python setup.py develop
