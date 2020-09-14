@@ -20,6 +20,7 @@ class Token:
     deprel: Optional[str] = None
     deps: Optional[str] = None
     misc: Optional[str] = None
+    semrel: Optional[str] = None
 
 
 @dataclass_json
@@ -37,8 +38,14 @@ class _TokenList(conllu.TokenList):
         return 'TokenList<' + ', '.join(token['token'] for token in self) + '>'
 
 
-def sentence2conllu(sentence: Sentence) -> conllu.TokenList:
-    tokens = [collections.OrderedDict(t.to_dict()) for t in sentence.tokens]
+def sentence2conllu(sentence: Sentence, keep_semrel: bool = True) -> conllu.TokenList:
+    tokens = []
+    for token in sentence.tokens:
+        token_dict = collections.OrderedDict(token.to_dict())
+        # Remove semrel to have default conllu format.
+        if not keep_semrel:
+            del token_dict["semrel"]
+        tokens.append(token_dict)
     # Range tokens must be tuple not list, this is conllu library requirement
     for t in tokens:
         if type(t["id"]) == list:

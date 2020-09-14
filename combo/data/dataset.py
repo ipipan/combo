@@ -41,7 +41,7 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
                 "Features and targets cannot share elements! "
                 "Remove {} from either features or targets.".format(intersection)
             )
-        self._use_sem = use_sem
+        self.use_sem = use_sem
 
         # *.conllu readers configuration
         fields = list(parser.DEFAULT_FIELDS)
@@ -49,7 +49,7 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
         field_parsers = parser.DEFAULT_FIELD_PARSERS
         # Do not make it nullable
         field_parsers.pop("xpostag", None)
-        if self._use_sem:
+        if self.use_sem:
             fields = list(fields)
             fields.append("semrel")
             field_parsers["semrel"] = lambda line, i: line[i]
@@ -113,8 +113,23 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
                         fields_[target_name] = allen_fields.SequenceLabelField(target_values, text_field,
                                                                                label_namespace=target_name + "_labels")
 
+        # Restore feats fields to string representation
+        # parser.serialize_field doesn't handle key without value
+        for token in tree.tokens:
+            if "feats" in token:
+                feats = token["feats"]
+                if feats:
+                    feats_values = []
+                    for k, v in feats.items():
+                        feats_values.append('='.join((k, v)) if v else k)
+                    field = "|".join(feats_values)
+                else:
+                    field = "_"
+                token["feats"] = field
+
         # metadata
         fields_["metadata"] = allen_fields.MetadataField({"input": tree, "field_names": self.fields})
+
         return allen_data.Instance(fields_)
 
     @staticmethod

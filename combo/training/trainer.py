@@ -127,6 +127,7 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
                             val_reg_loss,
                             num_batches=num_batches,
                             batch_loss=None,
+                            batch_reg_loss=None,
                             reset=True,
                             world_size=self._world_size,
                             cuda_device=self.cuda_device,

@@ -1,9 +1,5 @@
 ## Installation
 
-### HERBERTA notes:
-
-Install herberta transformers package **before** running command below
-
 Clone this repository and run:
 ```bash
 python setup.py develop
@@ -86,7 +82,7 @@ Input: one sentence per line.
 Output: List of token jsons.
 
 ```bash
-combo --mode predict --model_path your_model_tar_gz --input_file your_text_file --output_file your_output_file --silent
+combo --mode predict --model_path your_model_tar_gz --input_file your_text_file --output_file your_output_file --silent --noconllu_format
 ```
 #### Advanced
 

@@ -128,7 +128,7 @@ class SemanticMultitaskPredictor(predictor.Predictor):
         # Check whether serialized (str) tree or token's list
         # Serialized tree has already separators between lines
         if self.line_to_conllu:
-            return sentence2conllu(outputs).serialize()
+            return sentence2conllu(outputs, keep_semrel=self._dataset_reader.use_sem).serialize()
         else:
             return outputs.to_json()
 

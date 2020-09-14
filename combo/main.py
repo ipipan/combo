@@ -13,7 +13,7 @@ from allennlp.common import checks as allen_checks, util
 from allennlp.models import archival
 
 from combo import predict
-from combo.data import dataset
+from combo.data import api, dataset
 from combo.utils import checks
 
 logger = logging.getLogger(__name__)
@@ -76,6 +76,8 @@ flags.DEFINE_string(name="model_path", default=None,
                     help="Pretrained model path.")
 flags.DEFINE_string(name="input_file", default=None,
                     help="File to predict path")
+flags.DEFINE_boolean(name="conllu_format", default=True,
+                     help="Prediction based on conllu format (instead of raw text).")
 flags.DEFINE_integer(name="batch_size", default=1,
                      help="Prediction batch size.")
 flags.DEFINE_boolean(name="silent", default=True,
@@ -136,13 +138,13 @@ def run(_):
                 model=model,
                 dataset_reader=dataset_reader
             )
-            test_path = FLAGS.test_path
-            test_trees = dataset_reader.read(test_path)
+            test_trees = dataset_reader.read(FLAGS.test_path)
             with open(FLAGS.output_file, "w") as file:
                 for tree in test_trees:
-                    file.writelines(predictor.predict_instance_as_tree(tree).serialize())
+                    file.writelines(api.sentence2conllu(predictor.predict_instance(tree),
+                                                        keep_semrel=dataset_reader.use_sem).serialize())
     else:
-        use_dataset_reader = ".conllu" in FLAGS.input_file.lower()
+        use_dataset_reader = FLAGS.conllu_format
         predictor = _get_predictor()
         if use_dataset_reader:
             predictor.line_to_conllu = True
