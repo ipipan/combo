@@ -1,8 +1,6 @@
 import os
 import pathlib
-import shutil
 import unittest
-from unittest import mock
 
 import combo.data as data
 import combo.predict as predict
@@ -13,16 +11,6 @@ class PredictionTest(unittest.TestCase):
     MODULE_ROOT = PROJECT_ROOT / "combo"
     TESTS_ROOT = PROJECT_ROOT / "tests"
     FIXTURES_ROOT = TESTS_ROOT / "fixtures"
-
-    def setUp(self) -> None:
-        def _cleanup_archive_dir_without_logging(path: str):
-            if os.path.exists(path):
-                shutil.rmtree(path)
-
-        self.patcher = mock.patch(
-            "allennlp.models.archival._cleanup_archive_dir", _cleanup_archive_dir_without_logging
-        )
-        self.mock_cleanup_archive_dir = self.patcher.start()
 
     def test_prediction_are_equal_given_the_same_input_in_different_form(self):
         # given
