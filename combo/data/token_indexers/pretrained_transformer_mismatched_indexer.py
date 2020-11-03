@@ -6,10 +6,11 @@ from allennlp.data import token_indexers, tokenizers
 
 @data.TokenIndexer.register("pretrained_transformer_mismatched_fixed")
 class PretrainedTransformerMismatchedIndexer(token_indexers.PretrainedTransformerMismatchedIndexer):
+    """TODO(mklimasz) Remove during next allennlp update, fixed on allennlp master."""
 
     def __init__(self, model_name: str, namespace: str = "tags", max_length: int = None,
                  tokenizer_kwargs: Optional[Dict[str, Any]] = None, **kwargs) -> None:
-        # The matched version v.s. mismatchedńskie
+        # The matched version v.s. mismatched
         super().__init__(model_name, namespace, max_length, tokenizer_kwargs, **kwargs)
         self._matched_indexer = PretrainedTransformerIndexer(
             model_name,
