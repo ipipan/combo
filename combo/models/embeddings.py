@@ -1,5 +1,5 @@
 """Embeddings."""
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import torch
 import torch.nn as nn
@@ -110,8 +110,10 @@ class TransformersWordEmbedder(token_embedders.PretrainedTransformerMismatchedEm
                  projection_dim: int,
                  projection_activation: Optional[allen_nn.Activation] = lambda x: x,
                  projection_dropout_rate: Optional[float] = 0.0,
-                 freeze_transformer: bool = True):
-        super().__init__(model_name)
+                 freeze_transformer: bool = True,
+                 tokenizer_kwargs: Optional[Dict[str, Any]] = None,
+                 transformer_kwargs: Optional[Dict[str, Any]] = None):
+        super().__init__(model_name, tokenizer_kwargs=tokenizer_kwargs, transformer_kwargs=transformer_kwargs)
         self.freeze_transformer = freeze_transformer
         if self.freeze_transformer:
             self._matched_embedder.eval()

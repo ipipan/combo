@@ -3,7 +3,7 @@ import logging
 import os
 import time
 import traceback
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import torch
 import torch.distributed as dist
@@ -30,7 +30,8 @@ logger = logging.getLogger(__name__)
 @training.EpochCallback.register("transfer_patience")
 class TransferPatienceEpochCallback(training.EpochCallback):
 
-    def __call__(self, trainer: "training.GradientDescentTrainer", metrics: Dict[str, Any], epoch: int) -> None:
+    def __call__(self, trainer: "training.GradientDescentTrainer", metrics: Dict[str, Any], epoch: int,
+                 is_master: bool) -> None:
         if trainer._learning_rate_scheduler and trainer._learning_rate_scheduler.patience is not None:
             trainer._metric_tracker._patience = trainer._learning_rate_scheduler.patience
             trainer._metric_tracker._epochs_with_no_improvement = 0
@@ -45,20 +46,23 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
                  patience: Optional[int] = None, validation_metric: str = "-loss",
                  validation_data_loader: data.DataLoader = None, num_epochs: int = 20,
                  serialization_dir: Optional[str] = None, checkpointer: checkpointer.Checkpointer = None,
-                 cuda_device: int = -1,
+                 cuda_device: Optional[Union[int, torch.device]] = -1,
                  grad_norm: Optional[float] = None, grad_clipping: Optional[float] = None,
                  learning_rate_scheduler: Optional[learning_rate_schedulers.LearningRateScheduler] = None,
                  momentum_scheduler: Optional[momentum_schedulers.MomentumScheduler] = None,
                  tensorboard_writer: allen_tensorboard_writer.TensorboardWriter = None,
                  moving_average: Optional[moving_average.MovingAverage] = None,
                  batch_callbacks: List[training.BatchCallback] = None,
-                 epoch_callbacks: List[training.EpochCallback] = None, distributed: bool = False, local_rank: int = 0,
+                 epoch_callbacks: List[training.EpochCallback] = None,
+                 end_callbacks: List[training.EpochCallback] = None,
+                 trainer_callbacks: List[training.TrainerCallback] = None,
+                 distributed: bool = False, local_rank: int = 0,
                  world_size: int = 1, num_gradient_accumulation_steps: int = 1,
                  use_amp: bool = False) -> None:
         super().__init__(model, optimizer, data_loader, patience, validation_metric, validation_data_loader, num_epochs,
                          serialization_dir, checkpointer, cuda_device, grad_norm, grad_clipping,
                          learning_rate_scheduler, momentum_scheduler, tensorboard_writer, moving_average,
-                         batch_callbacks, epoch_callbacks, distributed, local_rank, world_size,
+                         batch_callbacks, epoch_callbacks, end_callbacks, trainer_callbacks, distributed, local_rank, world_size,
                          num_gradient_accumulation_steps, use_amp)
         # TODO extract param to constructor (+ constructor method?)
         self.validate_every_n = 5
@@ -93,7 +97,7 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
             metrics["best_validation_" + key] = value
 
         for callback in self._epoch_callbacks:
-            callback(self, metrics={}, epoch=-1)
+            callback(self, metrics={}, epoch=-1, is_master=True)
 
         for epoch in range(epoch_counter, self._num_epochs):
             epoch_start_time = time.time()
@@ -190,7 +194,7 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
                 dist.barrier()
 
             for callback in self._epoch_callbacks:
-                callback(self, metrics=metrics, epoch=epoch)
+                callback(self, metrics=metrics, epoch=epoch, is_master=self._master)
 
             epoch_elapsed_time = time.time() - epoch_start_time
             logger.info("Epoch duration: %s", datetime.timedelta(seconds=epoch_elapsed_time))
@@ -243,7 +247,7 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
             batch_callbacks: List[training.BatchCallback] = None,
             epoch_callbacks: List[training.EpochCallback] = None,
     ) -> "training.Trainer":
-        if tensorboard_writer.construct() is None:
+        if tensorboard_writer is None:
             tensorboard_writer = common.Lazy(combo_tensorboard_writer.NullTensorboardWriter)
         return super().from_partial_objects(
             model=model,

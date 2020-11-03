@@ -3,8 +3,9 @@ from setuptools import find_packages, setup
 
 REQUIREMENTS = [
     'absl-py==0.9.0',
-    'allennlp==1.1.0',
+    'allennlp==1.2.0',
     'conllu==2.3.2',
+    'dataclasses==0.5',
     'dataclasses-json==0.5.2',
     'joblib==0.14.1',
     'jsonnet==0.15.0',
@@ -13,7 +14,7 @@ REQUIREMENTS = [
     'tensorboard==2.1.0',
     'torch==1.6.0',
     'tqdm==4.43.0',
-    'transformers>=3.0.0,<3.1.0',
+    'transformers>=3.4.0,<3.5',
     'urllib3>=1.25.11',
 ]
 

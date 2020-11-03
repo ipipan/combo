@@ -112,8 +112,10 @@ assert pretrained_tokens == null || pretrained_transformer_name == null: "Can't 
         use_sem: if in_targets("semrel") then true else false,
         token_indexers: {
             token: if use_transformer then {
-                type: "pretrained_transformer_mismatched",
+                type: "pretrained_transformer_mismatched_fixed",
                 model_name: pretrained_transformer_name,
+                tokenizer_kwargs: if std.startsWith(pretrained_transformer_name, "allegro/herbert")
+                                  then {use_fast: false} else {},
             } else {
                 # SingleIdTokenIndexer, token as single int
                 type: "single_id",
@@ -202,6 +204,8 @@ assert pretrained_tokens == null || pretrained_transformer_name == null: "Can't 
                     type: "transformers_word_embeddings",
                     model_name: pretrained_transformer_name,
                     projection_dim: projected_embedding_dim,
+                    tokenizer_kwargs: if std.startsWith(pretrained_transformer_name, "allegro/herbert")
+                                      then {use_fast: false} else {},
                 } else {
                     type: "embeddings_projected",
                     embedding_dim: embedding_dim,
