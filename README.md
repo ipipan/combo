@@ -1,3 +1,14 @@
+# COMBO
+<p align="center">
+    A GPL-3.0 system, build on top of PyTorch and AllenNLP, for morphosyntactic analysis.
+</p>
+<hr/>
+<p align="center">
+    <a href="https://github.com/ipipan/combo/blob/master/LICENSE">
+        <img alt="License" src="https://img.shields.io/github/license/ipipan/combo.svg?color=blue&cachedrop">
+    </a>
+</p>
+
 ## Installation
 
 Clone this repository and run:
