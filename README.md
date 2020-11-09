@@ -9,6 +9,14 @@
     </a>
 </p>
 
+[Pre-trained models!](http://mozart.ipipan.waw.pl/~mklimaszewski/models/)
+```python
+import combo.predict as predict
+nlp = predict.SemanticMultitaskPredictor.from_pretrained("polish-herbert-base")
+sentence = nlp("Moje zdanie.")
+print(sentence.tokens)
+```
+
 ## Installation
 
 Clone this repository and run:
