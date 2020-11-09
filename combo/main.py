@@ -146,6 +146,9 @@ def run(_):
     else:
         use_dataset_reader = FLAGS.conllu_format
         predictor = _get_predictor()
+        if FLAGS.input_file == "-":
+            use_dataset_reader = False
+            predictor.without_sentence_embedding = True
         if use_dataset_reader:
             predictor.line_to_conllu = True
         if FLAGS.silent:

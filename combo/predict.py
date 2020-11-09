@@ -32,6 +32,7 @@ class SemanticMultitaskPredictor(predictor.Predictor):
         self._dataset_reader.generate_labels = False
         self._dataset_reader.lazy = True
         self._tokenizer = tokenizer
+        self.without_sentence_embedding = False
         self.line_to_conllu = line_to_conllu
 
     def __call__(self, sentence: Union[str, List[str], List[List[str]], List[data.Sentence]]):
@@ -127,6 +128,8 @@ class SemanticMultitaskPredictor(predictor.Predictor):
     def dump_line(self, outputs: data.Sentence) -> str:
         # Check whether serialized (str) tree or token's list
         # Serialized tree has already separators between lines
+        if self.without_sentence_embedding:
+            outputs.sentence_embedding = []
         if self.line_to_conllu:
             return sentence2conllu(outputs, keep_semrel=self._dataset_reader.use_sem).serialize()
         else:
