@@ -49,6 +49,8 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
         field_parsers = parser.DEFAULT_FIELD_PARSERS
         # Do not make it nullable
         field_parsers.pop("xpostag", None)
+        # Ignore parsing misc
+        field_parsers.pop("misc", None)
         if self.use_sem:
             fields = list(fields)
             fields.append("semrel")
