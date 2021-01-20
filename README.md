@@ -1,3 +1,6 @@
+# **COMBO repository has been moved to [https://gitlab.clarin-pl.eu/syntactic-tools/combo](https://gitlab.clarin-pl.eu/syntactic-tools/combo)**
+**The code in this repository is no longer developed or updated.**
+
 # COMBO
 <p align="center">
     A language-independent NLP system for dependency parsing, part-of-speech tagging, lemmatisation and more built on top of PyTorch and AllenNLP.
